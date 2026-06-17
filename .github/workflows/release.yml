@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  macos-dmg:
+    name: Build unsigned macOS DMG
+    runs-on: macos-latest
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.12.0"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck, lint, format, and test
+        run: pnpm check
+
+      - name: Build unsigned DMG
+        run: pnpm desktop:dist
+
+      - name: List release artifacts
+        run: ls -lh apps/desktop/dist
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" apps/desktop/dist/*.dmg \
+            --verify-tag \
+            --title "Yui ${GITHUB_REF_NAME}" \
+            --notes "Unsigned macOS DMG for Yui ${GITHUB_REF_NAME}.
+
+          This build is not code-signed or notarized. macOS may require right-click Open on first launch."

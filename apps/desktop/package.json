@@ -1,0 +1,82 @@
+{
+  "name": "@yui/desktop",
+  "version": "0.0.1",
+  "private": true,
+  "description": "The Electron desktop app for Yui.",
+  "license": "MIT",
+  "author": "ACAne0320 <nyaashino@gmail.com>",
+  "main": "./out/main/index.mjs",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
+    "pack": "pnpm build && electron-builder --dir --publish never",
+    "dist": "pnpm build && electron-builder --mac dmg --publish never"
+  },
+  "dependencies": {
+    "@earendil-works/pi-agent-core": "0.78.0",
+    "@earendil-works/pi-ai": "0.78.0",
+    "@earendil-works/pi-coding-agent": "0.78.0",
+    "@radix-ui/react-popover": "^1.1.16",
+    "@radix-ui/react-toast": "^1.2.16",
+    "@tanstack/react-query": "^5.101.0",
+    "@yui/contracts": "workspace:*",
+    "@yui/runtime": "workspace:*",
+    "i18next": "^26.3.1",
+    "lucide-react": "^1.17.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.78.0",
+    "react-i18next": "^17.0.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^4.2.0",
+    "zod": "^3.24.0",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^42.3.3",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4.3.0",
+    "vite": "^7.3.5"
+  },
+  "build": {
+    "appId": "dev.acane.yui",
+    "productName": "Yui",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "files": [
+      "out/**",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg"
+      ],
+      "identity": null
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220,
+          "type": "file"
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,374 @@
+.app-shell {
+  position: relative;
+}
+
+.rail-wrap {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  z-index: 20;
+  transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.rail-wrap > .sidebar {
+  width: 100%;
+}
+
+.app-shell.rail-collapsed .rail-wrap {
+  /* Fixed offset, not a %: the grid track collapses .rail-wrap to 0 width, so a
+     percentage translate resolves to 0 and the sidebar springs back into view.
+     -264px reliably clears the 248px sidebar regardless of the wrapper's width. */
+  transform: translateX(-264px);
+}
+
+.app-shell.rail-collapsed.rail-peek .rail-wrap {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 248px;
+  transform: translateX(0);
+  box-shadow: 12px 0 32px rgba(37, 33, 29, 0.12);
+}
+
+.rail-hotzone {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 16px;
+  z-index: 24;
+}
+
+.window-titlebar {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 30;
+  width: 248px;
+  height: 52px;
+  -webkit-app-region: drag;
+  transition: width 0.24s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+.win-controls {
+  position: absolute;
+  top: 10px;
+  /* Right-aligned within the 248px sidebar: group is 88px wide, sat 16px in
+     from the sidebar's right edge (232 - 88 = 144). */
+  left: 144px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: left 0.24s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+/* Sidebar collapsed: slide the group left to sit just past the native macOS
+   traffic lights (inset at x:18), without ever overlapping them. */
+.app-shell.rail-collapsed .win-controls {
+  left: 84px;
+}
+
+.app-shell.rail-collapsed .window-titlebar {
+  width: 180px;
+}
+
+.win-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.win-btn,
+.rail-ic {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tertiary);
+}
+
+.win-btn:hover,
+.rail-ic:hover {
+  background: rgba(37, 33, 29, 0.07);
+  color: var(--ink);
+}
+
+/* Frameless window: keep interactive controls out of draggable regions. */
+.thread-header {
+  -webkit-app-region: drag;
+}
+
+.window-titlebar .win-controls,
+.window-titlebar .win-controls *,
+.thread-cwd {
+  -webkit-app-region: no-drag;
+}
+
+/* Keep the cwd button clickable above the rail-collapsed drag overlay below. */
+.thread-cwd {
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell.rail-collapsed .thread-header {
+  position: relative;
+  -webkit-app-region: no-drag;
+}
+
+.app-shell.rail-collapsed .thread-header::before {
+  position: absolute;
+  inset: 0 0 0 180px;
+  content: "";
+  -webkit-app-region: drag;
+}
+
+.rail-nav {
+  display: flex;
+  gap: 2px;
+  margin: 0 10px 16px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(37, 33, 29, 0.05);
+}
+
+.rail-nav-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--subtle);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.rail-nav-item .ic {
+  display: grid;
+  color: var(--tertiary);
+}
+
+.rail-nav-item[data-on="true"] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(37, 33, 29, 0.1);
+}
+
+.rail-nav-item[data-on="true"] .ic {
+  color: var(--mint);
+}
+
+.rail-listhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px 6px 16px;
+  color: var(--tertiary);
+  font: 9.5px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ui-popover {
+  z-index: 70;
+  width: 320px;
+  max-height: min(420px, var(--radix-popover-content-available-height));
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--raised);
+  box-shadow: var(--shadow-pop);
+}
+
+.toast-viewport {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 100;
+  width: min(380px, calc(100vw - 36px));
+}
+
+.provider-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0 12px;
+}
+
+.provider-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-firm);
+  border-radius: 8px;
+  background: var(--raised);
+  color: var(--tertiary);
+  font-size: 12px;
+}
+
+.provider-search:focus-within {
+  border-color: var(--mint);
+}
+
+.provider-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  outline: none;
+}
+
+.provider-search input::placeholder {
+  color: var(--tertiary);
+}
+
+.provider-toolbar > button {
+  width: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--mint);
+  color: white;
+}
+
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 22px 26px 28px;
+}
+
+.panel-scroll > .set-group:first-child {
+  margin-top: 0;
+}
+
+.set-group {
+  max-width: 680px;
+  margin-top: 26px;
+}
+
+.set-group-title {
+  margin-bottom: 10px;
+  color: var(--tertiary);
+  font: 10px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.set-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.set-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.set-row:last-child {
+  border-bottom: 0;
+}
+
+.sr-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sr-label {
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.sr-desc {
+  margin-top: 3px;
+  color: var(--tertiary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sr-control {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: rgba(37, 33, 29, 0.05);
+}
+
+.segmented button {
+  padding: 6px 13px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--subtle);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.segmented button[data-on="true"] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(37, 33, 29, 0.1);
+}
+
+.kbd-group {
+  display: flex;
+  gap: 4px;
+}
+
+.kbd-group kbd {
+  min-width: 22px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-firm);
+  border-radius: 5px;
+  background: var(--muted);
+  color: var(--subtle);
+  font: 11px var(--mono);
+  text-align: center;
+}
+
+.settings-overlay .settings-nav {
+  /* Push the first item (the back button) clear of the macOS traffic lights,
+     which sit over the top-left of the nav column at roughly y:18–32. */
+  padding-top: 44px;
+}
+
+.accent-row {
+  margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    grid-template-columns: 0 minmax(0, 1fr);
+  }
+
+  .rail-wrap {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 248px;
+  }
+
+  .win-controls {
+    left: 84px;
+  }
+}

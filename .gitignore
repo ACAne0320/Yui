@@ -1,0 +1,18 @@
+# Dependencies and package-manager state
+node_modules/
+.pnpm-store/
+
+# Build output
+out/
+dist/
+
+# Reference copy of the Pi repository (has its own .git; not part of Yui)
+/pi/
+
+# Local-only docs and design handoff assets
+/docs/
+/design/
+
+# MacOS
+.DS_Store
+.alma-snapshots

@@ -1,0 +1,41 @@
+{
+  "name": "yui",
+  "version": "0.0.1",
+  "description": "A local-first desktop app and CLI for the Pi coding agent.",
+  "license": "MIT",
+  "author": "ACAne0320 <nyaashino@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ACAne0320/Yui.git"
+  },
+  "homepage": "https://github.com/ACAne0320/Yui#readme",
+  "bugs": {
+    "url": "https://github.com/ACAne0320/Yui/issues"
+  },
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "desktop:dev": "pnpm --filter @yui/desktop dev",
+    "desktop:build": "pnpm --filter @yui/desktop build",
+    "desktop:pack": "pnpm --filter @yui/desktop run pack",
+    "desktop:dist": "pnpm --filter @yui/desktop run dist",
+    "typecheck": "tsc -p packages/contracts/tsconfig.json && tsc -p packages/runtime/tsconfig.json && tsc -p apps/cli/tsconfig.json && pnpm --filter @yui/desktop typecheck",
+    "lint": "oxlint packages apps",
+    "format": "oxfmt --write packages apps",
+    "format:check": "oxfmt --check packages apps",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "oxfmt": "^0.53.0",
+    "oxlint": "^1.68.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

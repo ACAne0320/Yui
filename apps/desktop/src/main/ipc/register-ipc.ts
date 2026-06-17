@@ -1,0 +1,42 @@
+import type { AppRuntime } from "@yui/contracts";
+import type { BrowserWindow } from "electron";
+import { registerAgentsIpc } from "./agents-ipc";
+import { registerAuthIpc } from "./auth-ipc";
+import { registerDesktopIpc } from "./desktop-ipc";
+import { registerExtensionsIpc } from "./extensions-ipc";
+import { createIpcRegistrar } from "./handler";
+import { registerModelsIpc } from "./models-ipc";
+import { registerProfileIpc } from "./profile-ipc";
+import { registerSessionsIpc } from "./sessions-ipc";
+import { registerSettingsIpc } from "./settings-ipc";
+import { registerSubagentsIpc } from "./subagents-ipc";
+import { AgentSubscriptionRegistry } from "./subscriptions";
+
+export interface RegisteredDesktopIpc {
+  unregister(): void;
+}
+
+export function registerIpc(
+  getMainWindow: () => BrowserWindow | null,
+  runtime: AppRuntime,
+): RegisteredDesktopIpc {
+  const registrar = createIpcRegistrar(getMainWindow);
+  const subscriptions = new AgentSubscriptionRegistry(runtime);
+
+  registerDesktopIpc(registrar, runtime);
+  registerProfileIpc(registrar, runtime);
+  registerAuthIpc(registrar, runtime);
+  registerModelsIpc(registrar, runtime);
+  registerSettingsIpc(registrar, runtime);
+  registerSubagentsIpc(registrar, runtime);
+  registerExtensionsIpc(registrar, runtime);
+  registerSessionsIpc(registrar, runtime);
+  registerAgentsIpc(registrar, runtime, subscriptions);
+
+  return {
+    unregister() {
+      registrar.unregister();
+      subscriptions.dispose();
+    },
+  };
+}

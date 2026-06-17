@@ -1,0 +1,12 @@
+export const queryKeys = {
+  profile: ["profile"] as const,
+  providers: ["auth", "providers"] as const,
+  oauthLogin: (flowId: string) => ["auth", "oauth-login", flowId] as const,
+  models: ["models", "available"] as const,
+  defaults: ["settings", "defaults"] as const,
+  subagents: ["subagents"] as const,
+  extensions: ["extensions"] as const,
+  sessions: ["sessions"] as const,
+  sessionInfo: (sessionPath: string) => ["sessions", "info", sessionPath] as const,
+  sessionHistory: (sessionPath: string) => ["sessions", "history", sessionPath] as const,
+};

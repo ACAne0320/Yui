@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&display=swap");
+@import "tailwindcss";
+@import "./tokens.css";
+@import "../styles.css";
+@import "./shell.css";
+
+@source "../**/*.{ts,tsx}";
+
+/* Markdown rendering styles live in styles.css (.markdown / .md-code /
+   .md-table-wrap). Only the base typography is set here; do not add pre/code
+   rules in this file — they load after styles.css and silently win ties. */
+.markdown {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.75;
+}

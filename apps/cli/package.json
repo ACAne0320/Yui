@@ -1,0 +1,17 @@
+{
+  "name": "@yui/cli",
+  "version": "0.0.1",
+  "private": true,
+  "bin": {
+    "yui": "./src/index.ts"
+  },
+  "type": "module",
+  "scripts": {
+    "yui": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@yui/contracts": "workspace:*",
+    "@yui/runtime": "workspace:*",
+    "commander": "^12.1.0"
+  }
+}

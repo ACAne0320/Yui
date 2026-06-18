@@ -5,6 +5,7 @@ import { useModels } from "@renderer/data/models";
 import { useDefaults } from "@renderer/data/settings";
 import { type SettingsSection, useUiStore } from "@renderer/stores/ui-store";
 import { Icon, type IconName } from "@renderer/ui/Icon";
+import { AboutPanel } from "./components/AboutPanel";
 import { ExtensionsPanel } from "./components/ExtensionsPanel";
 import { GeneralPanel } from "./components/GeneralPanel";
 import { ProviderPanel } from "./components/ProviderPanel";
@@ -15,6 +16,7 @@ const sections: Array<{ id: SettingsSection; icon: IconName }> = [
   { id: "providers", icon: "model" },
   { id: "subagents", icon: "chat" },
   { id: "extensions", icon: "puzzle" },
+  { id: "about", icon: "info" },
 ];
 
 export function SettingsOverlay() {
@@ -73,6 +75,7 @@ export function SettingsOverlay() {
         )}
         {section === "subagents" && <SubagentsPanel />}
         {section === "extensions" && <ExtensionsPanel />}
+        {section === "about" && <AboutPanel />}
       </section>
     </div>
   );

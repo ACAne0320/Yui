@@ -306,6 +306,80 @@
   align-items: center;
 }
 
+.about-identity {
+  padding: 6px 2px 14px;
+}
+
+.about-name {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.about-version {
+  margin-top: 1px;
+  color: var(--subtle);
+  font: 12px var(--mono);
+}
+
+.about-tagline {
+  margin-top: 4px;
+  color: var(--tertiary);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.about-tagline a {
+  color: var(--mint-ink);
+  text-decoration: none;
+}
+
+.about-tagline a:hover {
+  text-decoration: underline;
+}
+
+.about-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.about-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--tertiary);
+}
+
+.about-status-dot[data-on="true"] {
+  background: var(--mint);
+}
+
+.about-status-dot[data-error="true"] {
+  background: var(--warning);
+}
+
+.about-actions {
+  gap: 8px;
+}
+
+.about-progress {
+  margin-top: 8px;
+  height: 5px;
+  max-width: 320px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(37, 33, 29, 0.08);
+}
+
+.about-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--mint);
+  transition: width 0.2s ease;
+}
+
 .segmented {
   display: flex;
   gap: 2px;

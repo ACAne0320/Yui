@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type SettingsSection = "general" | "providers" | "subagents" | "extensions";
+export type SettingsSection = "general" | "providers" | "subagents" | "extensions" | "about";
 
 interface UiState {
   settingsOpen: boolean;

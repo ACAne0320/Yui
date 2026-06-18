@@ -11,6 +11,13 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-06-18
+
+### Added
+- An "About" section in Settings showing the current version and author, links
+  to the repository, releases, and license, and a manual "Check for updates"
+  action that opens the update dialog when a release is available.
+
 ### Changed
 - The in-app updater now shows the combined changelog for every version between
   the installed build and the latest release, instead of only the latest entry.

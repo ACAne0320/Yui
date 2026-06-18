@@ -8,36 +8,14 @@ import { AppRuntimeError } from "@yui/contracts";
 import { app, type BrowserWindow, net } from "electron";
 import { desktopIpcChannels } from "../../shared/ipc-channels";
 import type { UpdateRelease, UpdateState } from "../../shared/update-api";
+import { type DownloadTarget, type GithubRelease, selectUpdate } from "./select-update.ts";
 
 const REPO_OWNER = "ACAne0320";
 const REPO_NAME = "Yui";
-const LATEST_RELEASE_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
-const CHECKSUMS_ASSET = "SHA256SUMS.txt";
+// The full listing (not `/releases/latest`) so we can aggregate the changelog
+// across every version a far-behind user skipped. 100 covers any realistic gap.
+const RELEASES_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=100`;
 const USER_AGENT = `Yui/${app.getVersion()} (+https://github.com/${REPO_OWNER}/${REPO_NAME})`;
-
-// The GitHub release payload, narrowed to the fields the updater consumes.
-interface GithubAsset {
-  name: string;
-  browser_download_url: string;
-}
-interface GithubRelease {
-  tag_name: string;
-  body: string | null;
-  html_url: string;
-  published_at: string | null;
-  draft: boolean;
-  prerelease: boolean;
-  assets: GithubAsset[];
-}
-
-// The concrete artifacts the current snapshot points at, kept out of the
-// renderer-facing DTO because URLs and asset names are install-time details.
-interface DownloadTarget {
-  version: string;
-  zipUrl: string;
-  zipName: string;
-  checksumsUrl: string | null;
-}
 
 /**
  * Drives the unsigned in-app update flow on macOS: check GitHub for a newer
@@ -84,8 +62,9 @@ export class DesktopUpdater {
 
     this.patch({ phase: "checking", error: null });
     try {
+      // fetchLatestRelease only returns a release when it's strictly newer.
       const release = await this.fetchLatestRelease();
-      if (release && isNewerVersion(release.version, this.state.currentVersion)) {
+      if (release) {
         return this.patch({ phase: "available", latest: release });
       }
       this.target = null;
@@ -158,41 +137,22 @@ export class DesktopUpdater {
   }
 
   private async fetchLatestRelease(): Promise<UpdateRelease | null> {
-    const response = await net.fetch(LATEST_RELEASE_API, {
+    const response = await net.fetch(RELEASES_API, {
       headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github+json" },
     });
     if (!response.ok) {
       throw new Error(`GitHub responded ${response.status} while checking for updates.`);
     }
 
-    const release = (await response.json()) as GithubRelease;
-    if (release.draft || release.prerelease) {
-      return null;
-    }
-
-    const zipAsset = pickZipAsset(release.assets);
-    if (!zipAsset) {
-      // No installable archive for this platform/arch — treat as up to date.
+    const releases = (await response.json()) as GithubRelease[];
+    const selection = selectUpdate(releases, this.state.currentVersion, process.arch);
+    if (!selection) {
       this.target = null;
       return null;
     }
 
-    const version = stripVersionPrefix(release.tag_name);
-    const checksums = release.assets.find((asset) => asset.name === CHECKSUMS_ASSET) ?? null;
-    this.target = {
-      version,
-      zipUrl: zipAsset.browser_download_url,
-      zipName: zipAsset.name,
-      checksumsUrl: checksums?.browser_download_url ?? null,
-    };
-
-    return {
-      version,
-      tag: release.tag_name,
-      notes: release.body ?? "",
-      publishedAt: release.published_at,
-      url: release.html_url,
-    };
+    this.target = selection.target;
+    return selection.release;
   }
 
   private async downloadFile(
@@ -244,13 +204,6 @@ export class DesktopUpdater {
     }
     return this.state;
   }
-}
-
-// Prefer the archive matching the running architecture; fall back to the sole
-// ZIP for single-arch releases that don't tag the filename.
-function pickZipAsset(assets: GithubAsset[]): GithubAsset | null {
-  const zips = assets.filter((asset) => asset.name.endsWith(".zip"));
-  return zips.find((asset) => asset.name.includes(process.arch)) ?? zips[0] ?? null;
 }
 
 async function verifyChecksum(
@@ -386,32 +339,6 @@ fi
 // Single-quote a value for safe interpolation into a bash script.
 function shellQuote(value: string): string {
   return `'${value.replace(/'/g, "'\\''")}'`;
-}
-
-function stripVersionPrefix(version: string): string {
-  return version.replace(/^v/, "");
-}
-
-// Compares core "major.minor.patch" only; pre-release tags are out of scope for
-// the unsigned channel (releases never carry them — they're filtered above).
-function isNewerVersion(latest: string, current: string): boolean {
-  const a = parseVersion(latest);
-  const b = parseVersion(current);
-  for (let index = 0; index < 3; index += 1) {
-    if (a[index]! > b[index]!) {
-      return true;
-    }
-    if (a[index]! < b[index]!) {
-      return false;
-    }
-  }
-  return false;
-}
-
-function parseVersion(version: string): [number, number, number] {
-  const core = stripVersionPrefix(version).split("-")[0] ?? "";
-  const parts = core.split(".").map((part) => Number.parseInt(part, 10) || 0);
-  return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
 }
 
 function describeError(error: unknown): string {

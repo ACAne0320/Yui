@@ -50,6 +50,24 @@ jobs:
       - name: List release artifacts
         run: ls -lh apps/desktop/dist
 
+      - name: Build release notes from CHANGELOG
+        # The body is the matching CHANGELOG section verbatim (no install
+        # boilerplate, so the in-app updater can aggregate sections cleanly).
+        # Fail loudly when the section is missing — a release must have notes.
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { capture = 1; next }
+            capture && /^## \[/ { exit }
+            capture { print }
+          ' CHANGELOG.md | sed -e '/./,$!d' > RELEASE_NOTES.md
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "::error::No CHANGELOG.md section found for ${VERSION}. Add one before tagging." >&2
+            exit 1
+          fi
+          echo "----- release notes -----"
+          cat RELEASE_NOTES.md
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -60,7 +78,4 @@ jobs:
             apps/desktop/dist/SHA256SUMS.txt \
             --verify-tag \
             --title "Yui ${GITHUB_REF_NAME}" \
-            --notes "Unsigned macOS build for Yui ${GITHUB_REF_NAME}.
-
-          - DMG: first-time install (drag to Applications). macOS may require right-click Open on first launch because the build is not code-signed or notarized.
-          - ZIP + SHA256SUMS.txt: consumed by Yui's in-app updater; no need to download manually."
+            --notes-file RELEASE_NOTES.md

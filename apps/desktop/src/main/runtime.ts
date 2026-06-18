@@ -19,6 +19,14 @@ export function initializeDesktopRuntime(): AppRuntime {
   // exactly the global file the UI writes, independent of launch location.
   // Sessions are unaffected: each one builds its services against its own cwd.
   const config = resolveRuntimeConfig();
+  // Pi resolves its *global* agent dir from PI_CODING_AGENT_DIR (falling back to
+  // ~/.pi/agent). That dir governs the bash tool's PATH bin prefix and managed
+  // rg/fd, via getShellEnv() -> getBinDir() -> getAgentDir(), which ignore the
+  // per-session agentDir Yui threads everywhere else. Point Pi at our own agent
+  // dir so the shell PATH prefix lands under YUI_HOME (~/.yui/agent/bin) instead
+  // of leaking ~/.pi/agent/bin. Set unconditionally to keep it in lockstep with
+  // the agentDir we pass to createAgentSessionServices.
+  process.env.PI_CODING_AGENT_DIR = config.agentDir;
   runtime = createRuntime({ ...config, cwd: config.homeDir });
   return runtime;
 }

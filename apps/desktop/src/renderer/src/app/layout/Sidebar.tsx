@@ -7,11 +7,18 @@ import { conversation } from "@renderer/features/chat/conversation";
 import { useChatStore } from "@renderer/features/chat/store";
 import type { ActiveConversation } from "@renderer/features/chat/types";
 import { useUiStore } from "@renderer/stores/ui-store";
+import { useUpdateStore } from "@renderer/stores/update-store";
 import { Icon } from "@renderer/ui/Icon";
 
 export function Sidebar() {
   const { t } = useTranslation();
   const openSettings = useUiStore((state) => state.openSettings);
+  const setUpdateOpen = useUiStore((state) => state.setUpdateOpen);
+  const updatePhase = useUpdateStore((state) => state.state?.phase);
+  // Surface the entry the moment a release is found and keep it through the
+  // download so the user always has a way back into the flow.
+  const showUpdate =
+    updatePhase === "available" || updatePhase === "downloading" || updatePhase === "downloaded";
   const persisted = useSessions().data ?? [];
   const active = useChatStore((state) => state.active);
   const cachedRealtime = useChatStore((state) => state.realtimeBySessionId);
@@ -51,6 +58,17 @@ export function Sidebar() {
         onPick={(session) => void conversation.openConversation(session)}
         onDelete={(session) => void conversation.deleteConversation(session)}
       />
+      {showUpdate && (
+        <button className="update-entry" onClick={() => setUpdateOpen(true)}>
+          <Icon name="download" size={16} />
+          <span>
+            {updatePhase === "downloaded"
+              ? t("update.sidebar.ready")
+              : t("update.sidebar.available")}
+          </span>
+          <span className="update-dot" aria-hidden="true" />
+        </button>
+      )}
       <button className="settings-entry" onClick={() => openSettings()}>
         <Icon name="settings" size={16} />
         <span>{t("shell.settings")}</span>

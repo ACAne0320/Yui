@@ -1,5 +1,6 @@
 import type { AppAgentEvent } from "@yui/contracts";
 import type { YuiDesktopApi } from "../../shared/desktop-api";
+import type { UpdateEvent } from "../../shared/update-api";
 import { desktopIpcChannels, type DesktopIpcChannel } from "../../shared/ipc-channels";
 
 export type DesktopInvoke = <Output>(
@@ -8,10 +9,12 @@ export type DesktopInvoke = <Output>(
 ) => Promise<Output>;
 
 export type AgentEventSubscriber = (listener: (event: AppAgentEvent) => void) => () => void;
+export type UpdateEventSubscriber = (listener: (event: UpdateEvent) => void) => () => void;
 
 export function createYuiApi(
   invoke: DesktopInvoke,
   onAgentEvent: AgentEventSubscriber,
+  onUpdateEvent: UpdateEventSubscriber,
 ): YuiDesktopApi {
   return {
     desktop: {
@@ -19,6 +22,13 @@ export function createYuiApi(
       selectDirectory: (input) => invoke(desktopIpcChannels.desktop.selectDirectory, input),
       createScratchDirectory: () => invoke(desktopIpcChannels.desktop.createScratchDirectory),
       openPath: (input) => invoke(desktopIpcChannels.desktop.openPath, input),
+    },
+    update: {
+      getState: () => invoke(desktopIpcChannels.update.getState),
+      check: () => invoke(desktopIpcChannels.update.check),
+      download: () => invoke(desktopIpcChannels.update.download),
+      install: () => invoke(desktopIpcChannels.update.install),
+      onEvent: onUpdateEvent,
     },
     profile: {
       get: () => invoke(desktopIpcChannels.profile.get),

@@ -11,7 +11,7 @@
     "build": "electron-vite build",
     "typecheck": "tsc -p tsconfig.node.json && tsc -p tsconfig.web.json",
     "pack": "pnpm build && electron-builder --dir --publish never",
-    "dist": "pnpm build && electron-builder --mac dmg --publish never"
+    "dist": "pnpm build && electron-builder --mac dmg zip --publish never"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.78.0",
@@ -59,20 +59,29 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ],
       "identity": null
     },
     "dmg": {
+      "background": "../../assets/installer/yui-installer-background.png",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "iconSize": 80,
+      "iconTextSize": 12,
+      "title": "${productName} ${version}",
       "contents": [
         {
-          "x": 130,
-          "y": 220,
+          "x": 140,
+          "y": 190,
           "type": "file"
         },
         {
-          "x": 410,
-          "y": 220,
+          "x": 400,
+          "y": 190,
           "type": "link",
           "path": "/Applications"
         }

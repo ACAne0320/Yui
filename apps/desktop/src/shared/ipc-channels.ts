@@ -5,6 +5,13 @@ export const desktopIpcChannels = {
     createScratchDirectory: "desktop:create-scratch-directory",
     openPath: "desktop:open-path",
   },
+  update: {
+    getState: "update:get-state",
+    check: "update:check",
+    download: "update:download",
+    install: "update:install",
+    event: "update:event",
+  },
   profile: {
     get: "profile:get",
   },

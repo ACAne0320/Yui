@@ -35,8 +35,13 @@ them — one that, over time, becomes genuinely yours. Here's where we're headin
 > Early development build — unsigned and un-notarized, so expect rough edges.
 
 **macOS** — download the latest `.dmg` from the
-[Releases page](https://github.com/ACAne0320/Yui/releases). It isn't signed yet,
-so right-click the app and choose **Open** on first launch.
+[Releases page](https://github.com/ACAne0320/Yui/releases). Because the build
+isn't signed yet, macOS quarantines it and blocks the first launch. Clear the
+Gatekeeper warning by removing the quarantine flag:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Yui.app
+```
 
 **Run from source** (any platform) — requires Node.js 22.12+ and pnpm:
 

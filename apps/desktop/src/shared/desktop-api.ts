@@ -37,6 +37,7 @@ import type {
   SetSessionThinkingLevelInput,
   SubagentCatalog,
 } from "@yui/contracts";
+import type { UpdateEvent, UpdateState } from "./update-api";
 
 export type DesktopPlatform =
   | "aix"
@@ -83,6 +84,19 @@ export interface YuiDesktopApi {
     // Opens a path with the OS default handler (a directory opens in the file
     // manager). Resolves to an empty string on success, or an error message.
     openPath(input: OpenPathInput): Promise<string>;
+  };
+  update: {
+    // Returns the last known update snapshot without triggering a check.
+    getState(): Promise<UpdateState>;
+    // Queries GitHub for the latest release and updates the snapshot.
+    check(): Promise<UpdateState>;
+    // Downloads and verifies the update archive for the running architecture.
+    download(): Promise<UpdateState>;
+    // Swaps the app bundle and relaunches. The renderer should not expect this
+    // to resolve — the process quits as part of installing.
+    install(): Promise<void>;
+    // Subscribes to update state transitions pushed from the main process.
+    onEvent(listener: (event: UpdateEvent) => void): () => void;
   };
   profile: {
     get(): Promise<DesktopProfileInfo>;

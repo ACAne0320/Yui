@@ -38,8 +38,14 @@ jobs:
       - name: Typecheck, lint, format, and test
         run: pnpm check
 
-      - name: Build unsigned DMG
+      - name: Build unsigned DMG and update ZIP
         run: pnpm desktop:dist
+
+      - name: Generate checksums
+        working-directory: apps/desktop/dist
+        # The in-app updater downloads SHA256SUMS.txt and verifies the ZIP it
+        # pulls before swapping the bundle, so this must cover every artifact.
+        run: shasum -a 256 *.dmg *.zip > SHA256SUMS.txt
 
       - name: List release artifacts
         run: ls -lh apps/desktop/dist
@@ -48,9 +54,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" apps/desktop/dist/*.dmg \
+          gh release create "${GITHUB_REF_NAME}" \
+            apps/desktop/dist/*.dmg \
+            apps/desktop/dist/*.zip \
+            apps/desktop/dist/SHA256SUMS.txt \
             --verify-tag \
             --title "Yui ${GITHUB_REF_NAME}" \
-            --notes "Unsigned macOS DMG for Yui ${GITHUB_REF_NAME}.
+            --notes "Unsigned macOS build for Yui ${GITHUB_REF_NAME}.
 
-          This build is not code-signed or notarized. macOS may require right-click Open on first launch."
+          - DMG: first-time install (drag to Applications). macOS may require right-click Open on first launch because the build is not code-signed or notarized.
+          - ZIP + SHA256SUMS.txt: consumed by Yui's in-app updater; no need to download manually."

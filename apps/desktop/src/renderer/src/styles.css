@@ -2220,6 +2220,125 @@ button:disabled {
   margin-top: 18px;
 }
 
+/* --- In-app updates ------------------------------------------------------ */
+.update-entry {
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  color: var(--mint-ink);
+  font-size: 13px;
+  text-align: left;
+}
+.update-entry:hover {
+  background: var(--mint-soft);
+}
+.update-entry .update-dot {
+  width: 7px;
+  height: 7px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--mint);
+}
+.update-dialog {
+  width: min(440px, calc(100vw - 48px));
+  max-height: min(70vh, 640px);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--raised);
+  box-shadow: 0 18px 50px rgb(37 33 29 / 18%);
+  animation: pop 0.16s ease-out;
+}
+.update-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.update-head h3 {
+  margin: 2px 0 0;
+  font: 500 17px var(--serif);
+}
+.update-eyebrow {
+  font: 9.5px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tertiary);
+}
+.update-close {
+  flex: none;
+  display: inline-flex;
+  padding: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--subtle);
+}
+.update-close:hover {
+  color: var(--ink);
+  background: rgba(37, 33, 29, 0.05);
+}
+.update-version {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font: 13px var(--mono);
+}
+.update-version-current {
+  color: var(--subtle);
+}
+.update-arrow {
+  color: var(--tertiary);
+}
+.update-version-next {
+  color: var(--mint-ink);
+  font-weight: 600;
+}
+.update-changelog {
+  margin-top: 14px;
+  padding: 12px 14px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--faint);
+}
+.update-progress {
+  margin-top: 14px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--muted);
+}
+.update-progress-bar {
+  height: 100%;
+  background: var(--mint);
+  transition: width 0.15s ease-out;
+}
+.update-error {
+  margin: 12px 0 0;
+  color: var(--danger);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.update-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+.update-actions .primary-button[disabled] {
+  opacity: 0.6;
+}
+
 /* --- Extensions settings panel ------------------------------------------- */
 .extension-detail .provider-head code {
   word-break: break-all;

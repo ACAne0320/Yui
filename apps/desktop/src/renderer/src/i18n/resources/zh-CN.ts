@@ -26,6 +26,21 @@ export const zhCN = {
     newChat: "新建对话",
     search: "搜索 ⌘K",
   },
+  update: {
+    eyebrow: "软件更新",
+    title: "有新版本可用",
+    noNotes: "本次更新暂无更新说明。",
+    sidebar: {
+      available: "有可用更新",
+      ready: "更新已就绪",
+    },
+    actions: {
+      download: "下载更新",
+      downloading: "下载中… {{percent}}%",
+      install: "重启并安装",
+      viewOnGitHub: "在 GitHub 查看",
+    },
+  },
   chat: {
     loading: "正在唤醒 Yui…",
     empty: {

@@ -32,6 +32,21 @@ export const enUS = {
     newChat: "New chat",
     search: "Search ⌘K",
   },
+  update: {
+    eyebrow: "Software update",
+    title: "A new version is available",
+    noNotes: "No release notes were provided for this update.",
+    sidebar: {
+      available: "Update available",
+      ready: "Update ready",
+    },
+    actions: {
+      download: "Download update",
+      downloading: "Downloading… {{percent}}%",
+      install: "Restart & install",
+      viewOnGitHub: "View on GitHub",
+    },
+  },
   chat: {
     loading: "Waking up Yui…",
     empty: {

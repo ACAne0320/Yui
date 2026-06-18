@@ -11,6 +11,8 @@ import { registerSessionsIpc } from "./sessions-ipc";
 import { registerSettingsIpc } from "./settings-ipc";
 import { registerSubagentsIpc } from "./subagents-ipc";
 import { AgentSubscriptionRegistry } from "./subscriptions";
+import { registerUpdateIpc } from "./update-ipc";
+import { DesktopUpdater } from "../update/updater";
 
 export interface RegisteredDesktopIpc {
   unregister(): void;
@@ -22,8 +24,10 @@ export function registerIpc(
 ): RegisteredDesktopIpc {
   const registrar = createIpcRegistrar(getMainWindow);
   const subscriptions = new AgentSubscriptionRegistry(runtime);
+  const updater = new DesktopUpdater(getMainWindow);
 
   registerDesktopIpc(registrar, runtime);
+  registerUpdateIpc(registrar, updater);
   registerProfileIpc(registrar, runtime);
   registerAuthIpc(registrar, runtime);
   registerModelsIpc(registrar, runtime);

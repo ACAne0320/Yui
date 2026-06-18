@@ -1,5 +1,6 @@
 import { app, nativeImage, type BrowserWindow } from "electron";
 import appIcon from "../../build/icon.png?asset";
+import { restoreLoginShellPath } from "./env/restore-path";
 import { registerIpc, type RegisteredDesktopIpc } from "./ipc/register-ipc";
 import { configureMainNetwork } from "./network/proxy";
 import {
@@ -66,6 +67,13 @@ if (!app.requestSingleInstanceLock()) {
         app.dock?.setIcon(nativeImage.createFromPath(appIcon));
       }
       installSecurityPolicies();
+      // A Finder/Dock launch gives the packaged app a bare PATH that omits
+      // Homebrew/nvm/pyenv/... — restore the login-shell PATH so the agent's
+      // bash tool can find user-installed CLIs. Dev runs from a terminal that
+      // already has the full PATH, so skip the shell spawn there.
+      if (app.isPackaged) {
+        await restoreLoginShellPath();
+      }
       // Route the runtime's fetch through Chromium so OAuth token exchange and
       // model calls honor the same proxy the OAuth browser window uses.
       await configureMainNetwork();

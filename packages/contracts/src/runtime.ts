@@ -39,6 +39,16 @@ import type {
   SetDefaultModelInput,
   SetDefaultThinkingLevelInput,
 } from "./settings.ts";
+import type {
+  DeleteMemoryInput,
+  ListMemoryInput,
+  MemoryEntry,
+  PersonaConfig,
+  SaveMemoryInput,
+  SaveSoulInput,
+  SetPersonaConfigInput,
+  SoulDoc,
+} from "./persona.ts";
 import type { DeleteSubagentInput, SaveSubagentInput, SubagentCatalog } from "./subagents.ts";
 
 // --- Runtime configuration -------------------------------------------------
@@ -137,6 +147,17 @@ export interface SettingsService {
   /** Pin the default provider/model. Rejects `unknown_model` if not in registry. */
   setDefaultModel(input: SetDefaultModelInput): Promise<void>;
   setDefaultThinkingLevel(input: SetDefaultThinkingLevelInput): Promise<void>;
+}
+
+/** Profile-level persona files under `<homeDir>/persona/`. */
+export interface PersonaService {
+  getConfig(): Promise<PersonaConfig>;
+  setConfig(input: SetPersonaConfigInput): Promise<PersonaConfig>;
+  getSoul(): Promise<SoulDoc>;
+  saveSoul(input: SaveSoulInput): Promise<SoulDoc>;
+  listMemory(input: ListMemoryInput): Promise<MemoryEntry[]>;
+  saveMemory(input: SaveMemoryInput): Promise<MemoryEntry>;
+  deleteMemory(input: DeleteMemoryInput): Promise<void>;
 }
 
 /**
@@ -248,6 +269,7 @@ export interface AppRuntime {
   auth: AuthService;
   models: ModelService;
   settings: SettingsService;
+  persona: PersonaService;
   agents: AgentService;
   subagents: SubagentConfigService;
   extensions: ExtensionCatalogService;

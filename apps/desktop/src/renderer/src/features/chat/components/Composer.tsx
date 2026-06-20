@@ -31,6 +31,8 @@ export function Composer({
   onThinking,
   enabledTools,
   onToggleTool,
+  noMemory,
+  onToggleNoMemory,
   locked = false,
   busy = false,
   onAbort,
@@ -242,6 +244,17 @@ export function Composer({
               </button>
             ))}
           </Popover>
+
+          {!locked && (
+            <button
+              className="composer-button"
+              data-active={noMemory || undefined}
+              title={noMemory ? t("chat.composer.memoryOff") : t("chat.composer.memoryOn")}
+              onClick={onToggleNoMemory}
+            >
+              <Icon name={noMemory ? "eyeOff" : "db"} size={15} />
+            </button>
+          )}
 
           <Popover
             trigger={

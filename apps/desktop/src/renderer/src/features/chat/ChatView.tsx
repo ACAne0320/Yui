@@ -135,6 +135,8 @@ export function ChatView() {
         onThinking={conversation.chooseThinking}
         enabledTools={state.enabledTools}
         onToggleTool={state.toggleTool}
+        noMemory={state.noMemory}
+        onToggleNoMemory={() => state.setNoMemory(!state.noMemory)}
         locked={Boolean(state.active?.sessionId)}
         busy={state.busy}
         onAbort={conversation.abort}

@@ -1,13 +1,24 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { AppAgentEvent } from "./agent.ts";
 import { openSessionInputSchema, promptInputSchema } from "./agent.ts";
 import { respondToOAuthLoginInputSchema, setApiKeyInputSchema } from "./auth.ts";
 import { respondToExtensionUiInputSchema } from "./extensions.ts";
+import {
+  personaConfigSchema,
+  personaScopeSchema,
+  recallInputSchema,
+  rememberInputSchema,
+  saveSoulInputSchema,
+} from "./persona.ts";
 import { AppRuntimeError } from "./runtime.ts";
 
 describe("input schemas", () => {
   it("accepts a valid open-session input and rejects a missing cwd", () => {
     expect(openSessionInputSchema.safeParse({ cwd: "/tmp/work" }).success).toBe(true);
+    expect(
+      openSessionInputSchema.safeParse({ cwd: "/tmp/work", persona: { memory: false } }).success,
+    ).toBe(true);
     expect(openSessionInputSchema.safeParse({ providerId: "anthropic" }).success).toBe(false);
   });
 
@@ -96,6 +107,20 @@ describe("input schemas", () => {
     expect(setApiKeyInputSchema.safeParse({ providerId: "anthropic", apiKey: "" }).success).toBe(
       false,
     );
+  });
+
+  it("accepts persona DTOs and rejects malformed memory tool inputs", () => {
+    expect(personaConfigSchema.safeParse({ memoryEnabled: true }).success).toBe(true);
+    expect(
+      personaScopeSchema.safeParse({ soul: true, globalMemory: false, cwdMemory: true }).success,
+    ).toBe(true);
+    expect(saveSoulInputSchema.safeParse({ content: "# Yui" }).success).toBe(true);
+    expect(
+      rememberInputSchema.safeParse({ text: "prefers concise replies", scope: "global" }).success,
+    ).toBe(true);
+    expect(rememberInputSchema.safeParse({ text: "x", scope: "project" }).success).toBe(false);
+    expect(recallInputSchema.safeParse({ query: "concise" }).success).toBe(true);
+    expect(recallInputSchema.safeParse({ query: "" }).success).toBe(false);
   });
 
   it("accepts OAuth login responses and rejects empty flow ids", () => {
@@ -194,5 +219,17 @@ describe("serialization", () => {
       message: "session is streaming",
       details: { sessionId: "s1" },
     });
+  });
+
+  it("serializes persona contracts and keeps persona.ts Pi-free", () => {
+    const persona = {
+      config: { memoryEnabled: true },
+      scope: { soul: true, globalMemory: true, cwdMemory: false },
+      soul: { content: "You are Yui.", path: "/tmp/persona/SOUL.md" },
+    };
+    expect(JSON.parse(JSON.stringify(persona))).toEqual(persona);
+    expect(readFileSync(new URL("./persona.ts", import.meta.url), "utf-8")).not.toContain(
+      "@earendil-works/pi-",
+    );
   });
 });

@@ -15,11 +15,16 @@ import type {
   ExtensionUiSnapshot,
   GetHistoryInput,
   GetSessionInfoInput,
+  DeleteMemoryInput,
+  ListMemoryInput,
   ListSessionsInput,
+  MemoryEntry,
   OpenSessionInput,
   OpenSessionResult,
   OAuthLoginFlowInput,
   OAuthLoginState,
+  PersonaConfig,
+  SaveMemoryInput,
   ProviderStatus,
   PromptInput,
   RemoveApiKeyInput,
@@ -27,14 +32,17 @@ import type {
   RespondToOAuthLoginInput,
   RuntimeConfig,
   SaveSubagentInput,
+  SaveSoulInput,
   SessionExtensionsInfo,
   SessionIdInput,
   SetApiKeyInput,
   SetDefaultModelInput,
   SetDefaultThinkingLevelInput,
   SetExtensionEnabledInput,
+  SetPersonaConfigInput,
   SetSessionModelInput,
   SetSessionThinkingLevelInput,
+  SoulDoc,
   SubagentCatalog,
 } from "@yui/contracts";
 import type { UpdateEvent, UpdateState } from "./update-api";
@@ -117,6 +125,15 @@ export interface YuiDesktopApi {
     getDefaults(): Promise<AppDefaults>;
     setDefaultModel(input: SetDefaultModelInput): Promise<void>;
     setDefaultThinkingLevel(input: SetDefaultThinkingLevelInput): Promise<void>;
+  };
+  persona: {
+    getConfig(): Promise<PersonaConfig>;
+    setConfig(input: SetPersonaConfigInput): Promise<PersonaConfig>;
+    getSoul(): Promise<SoulDoc>;
+    saveSoul(input: SaveSoulInput): Promise<SoulDoc>;
+    listMemory(input: ListMemoryInput): Promise<MemoryEntry[]>;
+    saveMemory(input: SaveMemoryInput): Promise<MemoryEntry>;
+    deleteMemory(input: DeleteMemoryInput): Promise<void>;
   };
   subagents: {
     list(): Promise<SubagentCatalog>;

@@ -9,9 +9,15 @@ import type {
   ModelRegistry,
 } from "@earendil-works/pi-coding-agent";
 import { afterEach, describe, expect, it } from "vitest";
+import type { PersonaStore } from "../persona/persona-store.ts";
 import { discoverAgents, loadAgents, resolveAgentModel } from "./subagent-agents.ts";
 import { BUILTIN_AGENTS } from "./subagent-builtins.ts";
-import { createSubagentTool, resolveChainTask, type SubagentDetails } from "./subagent-tool.ts";
+import {
+  createSubagentTool,
+  includeCustomToolNames,
+  resolveChainTask,
+  type SubagentDetails,
+} from "./subagent-tool.ts";
 import { SubagentTranscript, summarizeArgs } from "./subagent-transcript.ts";
 
 const event = (value: unknown) => value as AgentSessionEvent;
@@ -277,6 +283,21 @@ describe("resolveChainTask", () => {
   });
 });
 
+describe("includeCustomToolNames", () => {
+  it("keeps named-agent allowlists from filtering SDK custom tools", () => {
+    expect(includeCustomToolNames(["read", "bash"], [{ name: "recall" }])).toEqual([
+      "read",
+      "bash",
+      "recall",
+    ]);
+    expect(includeCustomToolNames(["read", "recall"], [{ name: "recall" }])).toEqual([
+      "read",
+      "recall",
+    ]);
+    expect(includeCustomToolNames(undefined, [{ name: "recall" }])).toBeUndefined();
+  });
+});
+
 describe("subagent tool parameter validation", () => {
   let dir: string;
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
@@ -288,6 +309,7 @@ describe("subagent tool parameter validation", () => {
       agentDir: dir,
       authStorage: {} as AuthStorage,
       modelRegistry: {} as ModelRegistry,
+      persona: {} as PersonaStore,
       host: {
         session: {} as AgentSession,
         bridge: {} as ExtensionUIContext,
@@ -304,6 +326,7 @@ describe("subagent tool parameter validation", () => {
       agentDir: dir,
       authStorage: {} as AuthStorage,
       modelRegistry: {} as ModelRegistry,
+      persona: {} as PersonaStore,
       host: {},
     });
     await expect(tool.execute("t1", { task: "x" }, undefined, undefined, ctx())).rejects.toThrow(

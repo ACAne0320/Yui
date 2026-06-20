@@ -51,6 +51,15 @@ export function createYuiApi(
       setDefaultThinkingLevel: (input) =>
         invoke(desktopIpcChannels.settings.setDefaultThinkingLevel, input),
     },
+    persona: {
+      getConfig: () => invoke(desktopIpcChannels.persona.getConfig),
+      setConfig: (input) => invoke(desktopIpcChannels.persona.setConfig, input),
+      getSoul: () => invoke(desktopIpcChannels.persona.getSoul),
+      saveSoul: (input) => invoke(desktopIpcChannels.persona.saveSoul, input),
+      listMemory: (input) => invoke(desktopIpcChannels.persona.listMemory, input),
+      saveMemory: (input) => invoke(desktopIpcChannels.persona.saveMemory, input),
+      deleteMemory: (input) => invoke(desktopIpcChannels.persona.deleteMemory, input),
+    },
     subagents: {
       list: () => invoke(desktopIpcChannels.subagents.list),
       save: (input) => invoke(desktopIpcChannels.subagents.save, input),

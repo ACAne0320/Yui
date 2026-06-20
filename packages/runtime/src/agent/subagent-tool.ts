@@ -32,6 +32,10 @@ import {
   SessionManager,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
+import { createMemoryTools } from "../persona/memory-tools.ts";
+import type { PersonaStore } from "../persona/persona-store.ts";
+import { resolvePersonaScope } from "../persona/persona-scope.ts";
+import { buildPersonaSystemPrompt } from "../persona/system-prompt.ts";
 import { loadAgents, resolveAgentModel, type SubagentAgentConfig } from "./subagent-agents.ts";
 import { SubagentTranscript, type TranscriptItem } from "./subagent-transcript.ts";
 
@@ -77,6 +81,7 @@ export interface SubagentToolOptions {
   agentDir: string;
   authStorage: AuthStorage;
   modelRegistry: ModelRegistry;
+  persona: PersonaStore;
   host: SubagentHost;
 }
 
@@ -86,6 +91,15 @@ function truncateResult(text: string): string {
 
 function tailOf(text: string, max: number): string {
   return text.length > max ? `…${text.slice(-max)}` : text;
+}
+
+export function includeCustomToolNames(
+  tools: string[] | undefined,
+  customTools: Array<{ name: string }>,
+): string[] | undefined {
+  if (!tools) return undefined;
+  if (customTools.length === 0) return tools;
+  return [...new Set([...tools, ...customTools.map((tool) => tool.name)])];
 }
 
 /** Card title for a task: its first non-empty line, length-capped. */
@@ -266,6 +280,18 @@ export function createSubagentTool(options: SubagentToolOptions) {
         );
       }
 
+      const personaConfig = await options.persona.getConfig();
+      const personaScope = resolvePersonaScope({ config: personaConfig, kind: "subagent" });
+      const personaPrompt = await buildPersonaSystemPrompt(options.persona, personaScope, cwd, {
+        memoryReadOnly: true,
+      });
+      const memoryTools = createMemoryTools({
+        store: options.persona,
+        cwd,
+        scope: personaScope,
+        readOnly: true,
+      });
+
       const states: TaskState[] = specs.map((spec) => ({
         agent: spec.agent ? agents.find((agent) => agent.name === spec.agent) : undefined,
         task: spec.task,
@@ -321,22 +347,27 @@ export function createSubagentTool(options: SubagentToolOptions) {
           }
           // Fresh per-task services (see module comment). Reloads extensions
           // through jiti each call; cache per parent session if this gets hot.
+          const appendSystemPrompt = [
+            ...(state.agent?.systemPrompt.trim() ? [state.agent.systemPrompt] : []),
+            ...(personaPrompt ? [personaPrompt] : []),
+          ];
+          const tools = includeCustomToolNames(state.agent?.tools, memoryTools);
           const services = await createAgentSessionServices({
             cwd,
             agentDir: options.agentDir,
             authStorage: options.authStorage,
             modelRegistry: options.modelRegistry,
-            resourceLoaderOptions: state.agent?.systemPrompt.trim()
-              ? { appendSystemPrompt: [state.agent.systemPrompt] }
-              : undefined,
+            resourceLoaderOptions:
+              appendSystemPrompt.length > 0 ? { appendSystemPrompt } : undefined,
           });
           const { session: child } = await createAgentSessionFromServices({
             services,
             sessionManager: SessionManager.inMemory(cwd),
             model: model ?? parent.model,
             thinkingLevel: parent.thinkingLevel,
-            tools: state.agent?.tools,
-            // No customTools: a subagent must not recursively spawn subagents.
+            tools,
+            // Only read-only memory tools: subagents must not recursively spawn subagents.
+            customTools: memoryTools,
           });
           const unsubscribe = child.subscribe((event) => {
             if (state.transcript.apply(event)) emitProgress(event.type !== "message_update");

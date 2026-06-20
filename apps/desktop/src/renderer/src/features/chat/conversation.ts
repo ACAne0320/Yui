@@ -195,6 +195,7 @@ async function send(override?: string) {
         providerId: selectedModel.providerId,
         modelId: selectedModel.modelId,
         thinkingLevel: state.selectedThinking,
+        persona: state.noMemory ? { memory: false } : undefined,
       });
       sessionId = opened.sessionId;
       await api.agents.subscribe({ sessionId });

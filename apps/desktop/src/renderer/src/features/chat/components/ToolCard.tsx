@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@renderer/ui/Icon";
 import { Markdown } from "@renderer/ui/Markdown";
+import { MemoryCard, rememberedFrom } from "./MemoryCard";
 import { SubagentCards, subagentTasksFrom } from "./SubagentCards";
 
 // Tool results shaped like Pi's AgentToolResult ({ content: [{ type: "text",
@@ -83,6 +84,10 @@ export function ToolCard({
   if (name === "subagent") {
     const tasks = subagentTasksFrom(detail, args, running);
     if (tasks) return <SubagentCards tasks={tasks} />;
+  }
+  if (name === "remember") {
+    const remembered = rememberedFrom(detail);
+    if (remembered) return <MemoryCard entry={remembered.entry} updated={remembered.updated} />;
   }
 
   const text = toDisplayText(detail);

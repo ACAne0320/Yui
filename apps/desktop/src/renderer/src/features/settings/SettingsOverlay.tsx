@@ -8,12 +8,14 @@ import { Icon, type IconName } from "@renderer/ui/Icon";
 import { AboutPanel } from "./components/AboutPanel";
 import { ExtensionsPanel } from "./components/ExtensionsPanel";
 import { GeneralPanel } from "./components/GeneralPanel";
+import { PersonaPanel } from "./components/PersonaPanel";
 import { ProviderPanel } from "./components/ProviderPanel";
 import { SubagentsPanel } from "./components/SubagentsPanel";
 
 const sections: Array<{ id: SettingsSection; icon: IconName }> = [
   { id: "general", icon: "settings" },
   { id: "providers", icon: "model" },
+  { id: "persona", icon: "spark" },
   { id: "subagents", icon: "chat" },
   { id: "extensions", icon: "puzzle" },
   { id: "about", icon: "info" },
@@ -64,6 +66,7 @@ export function SettingsOverlay() {
           )}
         </header>
         {section === "general" && <GeneralPanel />}
+        {section === "persona" && <PersonaPanel />}
         {section === "providers" && (
           <ProviderPanel
             providers={providers}

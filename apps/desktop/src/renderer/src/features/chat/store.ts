@@ -20,12 +20,15 @@ interface ChatState extends ChatRealtimeState {
   selectedModelKey: string;
   selectedCwd: string;
   selectedThinking: ThinkingLevel;
+  /** Sticky new-chat preference: open the next session without persona memory. */
+  noMemory: boolean;
   enabledTools: Set<string>;
   setInput: (input: string) => void;
   setAttachments: (attachments: ComposerAttachment[]) => void;
   setLoadingConversation: (loading: boolean) => void;
   setSelectedCwd: (cwd: string) => void;
   setSelectedThinking: (thinking: ThinkingLevel) => void;
+  setNoMemory: (noMemory: boolean) => void;
   toggleTool: (id: string) => void;
   detachActiveConversation: () => void;
   forgetConversation: (sessionId: string) => void;
@@ -111,12 +114,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
   selectedModelKey: "",
   selectedCwd: "",
   selectedThinking: "medium",
+  noMemory: false,
   enabledTools: new Set(toolOptions.map((tool) => tool.id)),
   setInput: (input) => set({ input }),
   setAttachments: (attachments) => set({ attachments }),
   setLoadingConversation: (loadingConversation) => set({ loadingConversation }),
   setSelectedCwd: (selectedCwd) => set({ selectedCwd }),
   setSelectedThinking: (selectedThinking) => set({ selectedThinking }),
+  setNoMemory: (noMemory) => set({ noMemory }),
   toggleTool: (id) =>
     set((state) => {
       const enabledTools = new Set(state.enabledTools);

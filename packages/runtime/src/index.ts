@@ -9,5 +9,8 @@ export { PiSessionCatalog } from "./sessions/session-catalog.ts";
 export { PiAuthService } from "./auth/auth-service.ts";
 export { PiModelService, toAppModel } from "./models/model-service.ts";
 export { PiSettingsService } from "./settings/settings-service.ts";
+export { PersonaStore, projectPathSlug } from "./persona/persona-store.ts";
+export { resolvePersonaScope } from "./persona/persona-scope.ts";
+export { buildPersonaSystemPrompt } from "./persona/system-prompt.ts";
 export { createInfrastructure } from "./pi/infrastructure.ts";
 export type { PiInfrastructure } from "./pi/infrastructure.ts";

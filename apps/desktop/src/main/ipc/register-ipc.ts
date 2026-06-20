@@ -6,6 +6,7 @@ import { registerDesktopIpc } from "./desktop-ipc";
 import { registerExtensionsIpc } from "./extensions-ipc";
 import { createIpcRegistrar } from "./handler";
 import { registerModelsIpc } from "./models-ipc";
+import { registerPersonaIpc } from "./persona-ipc";
 import { registerProfileIpc } from "./profile-ipc";
 import { registerSessionsIpc } from "./sessions-ipc";
 import { registerSettingsIpc } from "./settings-ipc";
@@ -32,6 +33,7 @@ export function registerIpc(
   registerAuthIpc(registrar, runtime);
   registerModelsIpc(registrar, runtime);
   registerSettingsIpc(registrar, runtime);
+  registerPersonaIpc(registrar, runtime);
   registerSubagentsIpc(registrar, runtime);
   registerExtensionsIpc(registrar, runtime);
   registerSessionsIpc(registrar, runtime);

@@ -24,6 +24,8 @@ function props() {
     onThinking: vi.fn(),
     enabledTools: new Set<string>(),
     onToggleTool: vi.fn(),
+    noMemory: false,
+    onToggleNoMemory: vi.fn(),
   };
 }
 

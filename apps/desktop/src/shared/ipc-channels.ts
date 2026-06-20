@@ -32,6 +32,15 @@ export const desktopIpcChannels = {
     setDefaultModel: "settings:set-default-model",
     setDefaultThinkingLevel: "settings:set-default-thinking-level",
   },
+  persona: {
+    getConfig: "persona:get-config",
+    setConfig: "persona:set-config",
+    getSoul: "persona:get-soul",
+    saveSoul: "persona:save-soul",
+    listMemory: "persona:list-memory",
+    saveMemory: "persona:save-memory",
+    deleteMemory: "persona:delete-memory",
+  },
   subagents: {
     list: "subagents:list",
     save: "subagents:save",

@@ -9,6 +9,7 @@ import type {
   ExtensionWidgetPlacement,
 } from "./extensions.ts";
 import { thinkingLevelSchema, type ThinkingLevel } from "./models.ts";
+import { openSessionPersonaInputSchema } from "./persona.ts";
 
 export type AppStopReason = "stop" | "length" | "toolUse" | "error" | "aborted";
 
@@ -21,6 +22,7 @@ export const openSessionInputSchema = z.object({
   providerId: z.string().optional(),
   modelId: z.string().optional(),
   thinkingLevel: thinkingLevelSchema.optional(),
+  persona: openSessionPersonaInputSchema.optional(),
 });
 export type OpenSessionInput = z.infer<typeof openSessionInputSchema>;
 

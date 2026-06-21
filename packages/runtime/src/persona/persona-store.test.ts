@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import type { RuntimeConfig } from "@yui/contracts";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { DEFAULT_SOUL } from "./default-soul.ts";
 import { PersonaStore, projectPathSlug } from "./persona-store.ts";
 
 describe("PersonaStore", () => {
@@ -29,13 +30,19 @@ describe("PersonaStore", () => {
     expect(first).toBe(second);
   });
 
-  it("creates the persona layout with default config and empty SOUL", async () => {
+  it("creates the persona layout with default config and a seeded SOUL", async () => {
     await expect(store.getConfig()).resolves.toEqual({ memoryEnabled: true });
     expect(existsSync(join(dir, "persona", "config.json"))).toBe(true);
     expect(existsSync(join(dir, "persona", "SOUL.md"))).toBe(true);
     expect(existsSync(join(dir, "persona", "MEMORY.md"))).toBe(true);
     expect(existsSync(join(dir, "persona", "memory"))).toBe(true);
-    await expect(store.getSoul()).resolves.toMatchObject({ content: "" });
+    await expect(store.getSoul()).resolves.toMatchObject({ content: DEFAULT_SOUL });
+  });
+
+  it("does not overwrite an existing SOUL when seeding base files", async () => {
+    await store.saveSoul({ content: "my own soul" });
+    await store.getConfig(); // triggers ensureBaseFiles again
+    await expect(store.getSoul()).resolves.toMatchObject({ content: "my own soul" });
   });
 
   it("reads and writes SOUL and config", async () => {

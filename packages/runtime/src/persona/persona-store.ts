@@ -18,6 +18,7 @@ import {
   type SoulDoc,
 } from "@yui/contracts";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
+import { DEFAULT_SOUL } from "./default-soul.ts";
 import { bigrams, coverage, jaccard } from "./text-match.ts";
 
 /** Min name-bigram Jaccard for a model `remember` to update an existing entry. */
@@ -291,7 +292,7 @@ export class PersonaStore implements PersonaService {
     await mkdir(this.globalMemoryDir, { recursive: true });
     await mkdir(this.projectsDir, { recursive: true });
     await writeFileIfMissing(this.configPath, `${JSON.stringify(DEFAULT_CONFIG, null, 2)}\n`);
-    await writeFileIfMissing(this.soulPath, "");
+    await writeFileIfMissing(this.soulPath, DEFAULT_SOUL);
     await writeFileIfMissing(this.globalMemoryIndexPath, "");
   }
 

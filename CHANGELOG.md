@@ -11,6 +11,20 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-06-22
+
+### Added
+- Persona support with an editable SOUL identity document and cross-session
+  memory for global preferences and project-specific context.
+- A default SOUL for new profiles, while preserving any existing custom SOUL.
+
+### Changed
+- Persona settings are now organized into separate Identity and Memory tabs.
+
+### Fixed
+- Development launches now use an isolated profile so they do not modify the
+  production profile.
+
 ## [0.0.3] - 2026-06-18
 
 ### Added

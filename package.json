@@ -1,6 +1,6 @@
 {
   "name": "yui",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A local-first desktop app and CLI for the Pi coding agent.",
   "license": "MIT",
   "author": "ACAne0320 <nyaashino@gmail.com>",

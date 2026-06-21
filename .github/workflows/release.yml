@@ -43,9 +43,24 @@ jobs:
 
       - name: Generate checksums
         working-directory: apps/desktop/dist
-        # The in-app updater downloads SHA256SUMS.txt and verifies the ZIP it
-        # pulls before swapping the bundle, so this must cover every artifact.
+        # SHA256SUMS.txt is the human-facing checksum list and the source the
+        # update manifest reads hashes from below.
         run: shasum -a 256 *.dmg *.zip > SHA256SUMS.txt
+
+      - name: Build update manifest
+        # latest.json is what the in-app updater fetches (via the CDN-served
+        # releases/latest/download redirect) instead of the rate-limited GitHub
+        # API. It pulls hashes from SHA256SUMS.txt and notes from CHANGELOG.md.
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: |
+          node apps/desktop/scripts/build-update-manifest.mjs \
+            apps/desktop/dist \
+            CHANGELOG.md \
+            apps/desktop/dist/latest.json
+          echo "----- latest.json -----"
+          cat apps/desktop/dist/latest.json
 
       - name: List release artifacts
         run: ls -lh apps/desktop/dist
@@ -76,6 +91,7 @@ jobs:
             apps/desktop/dist/*.dmg \
             apps/desktop/dist/*.zip \
             apps/desktop/dist/SHA256SUMS.txt \
+            apps/desktop/dist/latest.json \
             --verify-tag \
             --title "Yui ${GITHUB_REF_NAME}" \
             --notes-file RELEASE_NOTES.md

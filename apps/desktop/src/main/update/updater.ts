@@ -8,13 +8,16 @@ import { AppRuntimeError } from "@yui/contracts";
 import { app, type BrowserWindow, net } from "electron";
 import { desktopIpcChannels } from "../../shared/ipc-channels";
 import type { UpdateRelease, UpdateState } from "../../shared/update-api";
-import { type DownloadTarget, type GithubRelease, selectUpdate } from "./select-update.ts";
+import { type DownloadTarget, selectUpdate, type UpdateManifest } from "./select-update.ts";
 
 const REPO_OWNER = "ACAne0320";
 const REPO_NAME = "Yui";
-// The full listing (not `/releases/latest`) so we can aggregate the changelog
-// across every version a far-behind user skipped. 100 covers any realistic gap.
-const RELEASES_API = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=100`;
+// The static manifest, not the GitHub releases API. The API is rate-limited to
+// 60 req/h per IP, which shared proxy exit IPs (common for our users) exhaust,
+// so proxied users never saw updates. `latest.json` is a release asset served
+// from GitHub's CDN via this stable redirect — no API rate limit. It also
+// carries the aggregated changelog the listing used to provide.
+const MANIFEST_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest/download/latest.json`;
 const USER_AGENT = `Yui/${app.getVersion()} (+https://github.com/${REPO_OWNER}/${REPO_NAME})`;
 
 /**
@@ -90,8 +93,8 @@ export class DesktopUpdater {
       await this.downloadFile(target.zipUrl, zipPath, (progress) =>
         this.patch({ downloadProgress: progress }),
       );
-      if (target.checksumsUrl) {
-        await verifyChecksum(zipPath, target.zipName, target.checksumsUrl);
+      if (target.sha256) {
+        await verifyChecksum(zipPath, target.sha256);
       }
       this.downloadedZipPath = zipPath;
       return this.patch({ phase: "downloaded", downloadProgress: 1 });
@@ -137,15 +140,22 @@ export class DesktopUpdater {
   }
 
   private async fetchLatestRelease(): Promise<UpdateRelease | null> {
-    const response = await net.fetch(RELEASES_API, {
-      headers: { "User-Agent": USER_AGENT, Accept: "application/vnd.github+json" },
+    // `releases/latest/download/...` 302-redirects to the CDN; net.fetch follows
+    // it. A repo with no published release yet 404s, which we treat as "no
+    // update" rather than an error the user needs to see.
+    const response = await net.fetch(MANIFEST_URL, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
     });
+    if (response.status === 404) {
+      this.target = null;
+      return null;
+    }
     if (!response.ok) {
       throw new Error(`GitHub responded ${response.status} while checking for updates.`);
     }
 
-    const releases = (await response.json()) as GithubRelease[];
-    const selection = selectUpdate(releases, this.state.currentVersion, process.arch);
+    const manifest = (await response.json()) as UpdateManifest;
+    const selection = selectUpdate(manifest, this.state.currentVersion, process.arch);
     if (!selection) {
       this.target = null;
       return null;
@@ -206,36 +216,13 @@ export class DesktopUpdater {
   }
 }
 
-async function verifyChecksum(
-  zipPath: string,
-  zipName: string,
-  checksumsUrl: string,
-): Promise<void> {
-  const response = await net.fetch(checksumsUrl, { headers: { "User-Agent": USER_AGENT } });
-  // A missing checksum file (e.g. an older release) shouldn't block the update;
-  // HTTPS from GitHub already covers transport integrity.
-  if (!response.ok) {
-    return;
-  }
-  const expected = parseChecksum(await response.text(), zipName);
-  if (!expected) {
-    return;
-  }
+// The manifest inlines the expected SHA-256, so verification is a local hash
+// compare — no second network round-trip to a checksums file.
+async function verifyChecksum(zipPath: string, expected: string): Promise<void> {
   const actual = await sha256File(zipPath);
   if (actual.toLowerCase() !== expected.toLowerCase()) {
     throw new Error("The downloaded update failed checksum verification.");
   }
-}
-
-// Parses a `shasum -a 256` line: "<hex>  <filename>".
-function parseChecksum(contents: string, fileName: string): string | null {
-  for (const line of contents.split("\n")) {
-    const match = /^([0-9a-fA-F]{64})\s+\*?(.+)$/.exec(line.trim());
-    if (match && basename(match[2]!.trim()) === fileName) {
-      return match[1]!;
-    }
-  }
-  return null;
 }
 
 function sha256File(filePath: string): Promise<string> {

@@ -11,6 +11,11 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+### Fixed
+- Update checks no longer fail for users behind shared proxies. The in-app
+  updater now reads a CDN-served manifest instead of the GitHub API, whose
+  per-IP hourly limit shared proxy exit addresses routinely exhausted.
+
 ## [0.0.4] - 2026-06-22
 
 ### Added

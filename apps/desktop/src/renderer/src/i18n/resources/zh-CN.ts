@@ -256,8 +256,11 @@ export const zhCN = {
       label: "人格",
       eyebrow: "Profile",
       title: "人格",
-      soulTitle: "SOUL.md",
-      soulDescription: "Profile 级身份与语气文档。",
+      tabs: {
+        identity: "身份",
+        memory: "记忆",
+      },
+      soulDescription: "定义 Yui 的身份、语气与工作方式，原样注入到每个新对话。",
       soulLabel: "SOUL",
       soulPlaceholder: "写下人格身份、语气、偏好和工作方式…",
       appliesToNewSessions: "保存后的改动只对之后新开的对话生效，已打开的对话不受影响。",

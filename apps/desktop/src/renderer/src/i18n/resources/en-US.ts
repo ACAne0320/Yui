@@ -266,8 +266,12 @@ export const enUS = {
       label: "Persona",
       eyebrow: "Profile",
       title: "Persona",
-      soulTitle: "SOUL.md",
-      soulDescription: "Profile-level identity and voice document.",
+      tabs: {
+        identity: "Identity",
+        memory: "Memory",
+      },
+      soulDescription:
+        "Define Yui's identity, voice, and operating style — injected verbatim into every new conversation.",
       soulLabel: "SOUL",
       soulPlaceholder: "Write the persona identity, tone, preferences, and operating style…",
       appliesToNewSessions:

@@ -37,4 +37,17 @@ describe("PersonaPanel", () => {
     expect(screen.getByText("Saved.")).toBeTruthy();
     expect(screen.getByText(/opened afterwards/)).toBeTruthy();
   });
+
+  it("switches between the Identity and Memory tabs", () => {
+    render(<PersonaPanel />);
+
+    // Identity is the default tab: the SOUL editor is mounted, memory is not.
+    expect(screen.getByLabelText("SOUL")).toBeTruthy();
+    expect(screen.queryByText("Global — preferences & base facts")).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Memory" }));
+
+    expect(screen.getByText("Global — preferences & base facts")).toBeTruthy();
+    expect(screen.queryByLabelText("SOUL")).toBeNull();
+  });
 });

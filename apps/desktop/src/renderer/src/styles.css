@@ -2143,6 +2143,22 @@ button:disabled {
   font: 12px / 1.6 var(--mono);
   resize: vertical;
 }
+.persona-tabs {
+  margin-bottom: 22px;
+}
+/* Hug the tabs' content instead of stretching the pill full width. */
+.persona-tabs .segmented {
+  display: inline-flex;
+}
+.persona-panel .settings-section:first-of-type {
+  margin-top: 0;
+}
+.persona-tab-desc {
+  margin: 0 0 13px;
+  color: var(--subtle);
+  font-size: 12px;
+  line-height: 1.5;
+}
 .persona-editor-head {
   display: flex;
   align-items: baseline;

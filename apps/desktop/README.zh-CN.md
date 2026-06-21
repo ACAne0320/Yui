@@ -92,7 +92,8 @@ agents     openSession / prompt / steer / followUp / abort / title / model /
 ## Runtime 和 Profile
 
 Desktop 与 CLI 都使用 `resolveRuntimeConfig()`，默认 profile 是 `~/.yui`，可用
-`YUI_HOME` 覆盖（开发时通常指向 `~/.yui-dev`）。
+`YUI_HOME` 覆盖。仓库根目录的 `pnpm desktop:dev` 会在未显式设置时将其设为
+`~/.yui-dev`，避免开发数据和正式应用数据混用。
 
 Desktop 启动时会把 runtime 的 `cwd` 绑定到 profile home，而不是 Electron 进程 cwd。这样设置面板读写的是全局 profile settings，不会因为 Finder/桌面启动位置不同而混入某个项目的
 `.pi/settings.json`。真实会话不受影响；每个会话打开时会按自己的工作目录创建 Pi services。

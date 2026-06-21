@@ -19,7 +19,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "desktop:dev": "pnpm --filter @yui/desktop dev",
+    "desktop:dev": "YUI_HOME=${YUI_HOME:-$HOME/.yui-dev} pnpm --filter @yui/desktop dev",
     "desktop:build": "pnpm --filter @yui/desktop build",
     "desktop:pack": "pnpm --filter @yui/desktop run pack",
     "desktop:dist": "pnpm --filter @yui/desktop run dist",

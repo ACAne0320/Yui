@@ -39,7 +39,8 @@ pnpm install
 pnpm desktop:dev
 ```
 
-她的配置目录默认在 `~/.yui`（可用 `YUI_HOME` 指向其他文件夹）。
+源码开发默认使用 `~/.yui-dev`，打包后的应用默认使用 `~/.yui`。可显式设置
+`YUI_HOME` 指向其他文件夹。
 
 ## 致谢
 

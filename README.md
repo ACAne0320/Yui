@@ -50,8 +50,8 @@ pnpm install
 pnpm desktop:dev
 ```
 
-Her profile lives in `~/.yui` by default (set `YUI_HOME` to use another
-folder).
+Source development uses `~/.yui-dev`; packaged builds use `~/.yui`. Set
+`YUI_HOME` explicitly to use another folder.
 
 ## Acknowledgments
 

@@ -8,6 +8,7 @@ import {
 } from "@renderer/data/persona";
 import { formatError } from "@renderer/lib/format";
 import { Icon } from "@renderer/ui/Icon";
+import { Segmented } from "@renderer/ui/Segmented";
 import { useChatStore } from "../../chat/store";
 import { MemoryManager } from "./MemoryManager";
 
@@ -21,23 +22,20 @@ export function PersonaPanel() {
   return (
     <div className="panel-scroll scroll persona-panel">
       <div className="persona-tabs">
-        <div className="segmented" role="tablist">
-          {(["identity", "memory"] as const).map((id) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={tab === id}
-              data-on={tab === id}
-              onClick={() => setTab(id)}
-            >
-              {t(`settings.persona.tabs.${id}`)}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          asTabs
+          value={tab}
+          onChange={setTab}
+          options={(["identity", "memory"] as const).map((id) => ({
+            value: id,
+            label: t(`settings.persona.tabs.${id}`),
+          }))}
+        />
       </div>
 
-      {tab === "identity" ? <IdentityTab /> : <MemoryTab />}
+      <div key={tab} className="persona-tab-panel">
+        {tab === "identity" ? <IdentityTab /> : <MemoryTab />}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { changeLocale, currentLocale, type SupportedLocale } from "@renderer/i18n";
+import { Segmented } from "@renderer/ui/Segmented";
 
 const locales: SupportedLocale[] = ["en-US", "zh-CN"];
 
@@ -36,13 +37,16 @@ export function GeneralPanel() {
           label={t("settings.general.language")}
           desc={t("settings.general.languageDescription")}
         >
-          <div className="segmented">
-            {locales.map((item) => (
-              <button key={item} data-on={locale === item} onClick={() => void changeLocale(item)}>
-                {item === "en-US" ? t("settings.general.english") : t("settings.general.chinese")}
-              </button>
-            ))}
-          </div>
+          <Segmented
+            ariaLabel={t("settings.general.language")}
+            value={locale}
+            onChange={(item) => void changeLocale(item)}
+            options={locales.map((item) => ({
+              value: item,
+              label:
+                item === "en-US" ? t("settings.general.english") : t("settings.general.chinese"),
+            }))}
+          />
         </SetRow>
       </SetGroup>
 

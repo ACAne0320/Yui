@@ -417,6 +417,7 @@
 }
 
 .segmented {
+  position: relative;
   display: flex;
   gap: 2px;
   padding: 3px;
@@ -424,7 +425,27 @@
   background: rgba(37, 33, 29, 0.05);
 }
 
+/* The sliding highlight. Position/size are set inline from the active button's
+   measured box; only the motion lives here. */
+.segmented-thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  width: 0;
+  border-radius: 7px;
+  background: var(--raised);
+  box-shadow: 0 1px 2px rgba(37, 33, 29, 0.1);
+  pointer-events: none;
+  transition:
+    transform 0.24s cubic-bezier(0.2, 0.8, 0.25, 1),
+    width 0.24s cubic-bezier(0.2, 0.8, 0.25, 1),
+    opacity 0.18s ease;
+}
+
 .segmented button {
+  position: relative;
+  z-index: 1;
   padding: 6px 13px;
   border: 0;
   border-radius: 7px;
@@ -433,12 +454,15 @@
   font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
+  transition: color 0.18s ease;
+}
+
+.segmented button:not([data-on="true"]):hover {
+  color: var(--ink);
 }
 
 .segmented button[data-on="true"] {
-  background: var(--raised);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(37, 33, 29, 0.1);
 }
 
 .kbd-group {

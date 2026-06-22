@@ -12,6 +12,7 @@ import { useDeleteSubagent, useSaveSubagent, useSubagents } from "@renderer/data
 import { formatError } from "@renderer/lib/format";
 import { ConfirmDialog } from "@renderer/ui/ConfirmDialog";
 import { Icon } from "@renderer/ui/Icon";
+import { Segmented } from "@renderer/ui/Segmented";
 
 /** Must match the contracts-side `subagentNameSchema`. */
 const NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
@@ -264,14 +265,14 @@ function SubagentEditor({
 
       <div className="settings-section">
         <label>{t("settings.subagents.tools")}</label>
-        <div className="segmented">
-          <button type="button" data-on={!restrictTools} onClick={() => setRestrictTools(false)}>
-            {t("settings.subagents.toolsAll")}
-          </button>
-          <button type="button" data-on={restrictTools} onClick={() => setRestrictTools(true)}>
-            {t("settings.subagents.toolsCustom")}
-          </button>
-        </div>
+        <Segmented
+          value={restrictTools ? "custom" : "all"}
+          onChange={(v) => setRestrictTools(v === "custom")}
+          options={[
+            { value: "all", label: t("settings.subagents.toolsAll") },
+            { value: "custom", label: t("settings.subagents.toolsCustom") },
+          ]}
+        />
         {restrictTools && (
           <>
             <div className="tool-checks">

@@ -75,7 +75,11 @@ async function openConversation(summary: AppSessionSummary) {
   state.setLoadingConversation(true);
   useUiStore.setState({ settingsOpen: false, railPeek: false, notice: null });
   try {
-    await detachActiveSession();
+    // Keep the outgoing thread on screen (cached, not cleared) while the target
+    // session opens; seedConversation/restoreCachedConversation swaps it in
+    // atomically below. Detaching here instead would flash the empty new-chat
+    // view for the duration of the async load.
+    useChatStore.getState().cacheActiveConversation();
     const info = await queryClient.fetchQuery({
       queryKey: queryKeys.sessionInfo(summary.sessionPath),
       queryFn: () => api.sessions.getInfo({ sessionPath: summary.sessionPath }),

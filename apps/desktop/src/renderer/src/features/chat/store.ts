@@ -27,6 +27,7 @@ interface ChatState extends ChatRealtimeState {
   setSelectedCwd: (cwd: string) => void;
   setSelectedThinking: (thinking: ThinkingLevel) => void;
   setNoMemory: (noMemory: boolean) => void;
+  cacheActiveConversation: () => void;
   detachActiveConversation: () => void;
   forgetConversation: (sessionId: string) => void;
   getCachedSessionIdByPath: (sessionPath: string) => string | undefined;
@@ -118,6 +119,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setSelectedCwd: (selectedCwd) => set({ selectedCwd }),
   setSelectedThinking: (selectedThinking) => set({ selectedThinking }),
   setNoMemory: (noMemory) => set({ noMemory }),
+  // Snapshot the visible conversation into the per-session cache without
+  // clearing it. Used when switching sessions so the current thread stays on
+  // screen until the target loads, instead of flashing the empty new-chat view.
+  cacheActiveConversation: () => set((state) => cacheRealtime(state, visibleRealtime(state))),
   detachActiveConversation: () =>
     set((state) => ({
       ...blankRealtime(),

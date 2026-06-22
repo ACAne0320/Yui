@@ -75,6 +75,24 @@ describe("chat store session cache", () => {
     expect(state.runningSessionPaths).not.toContain("/sessions/s1.jsonl");
   });
 
+  it("caches the visible session without clearing it mid-switch", () => {
+    seedConversation({
+      active: active("s1", "/sessions/s1.jsonl"),
+      messages: [message("m1", "streaming")],
+      busy: true,
+    });
+
+    // Snapshotting for a session switch must keep the current thread on screen
+    // (no empty new-chat flash) while the target loads.
+    useChatStore.getState().cacheActiveConversation();
+
+    const state = useChatStore.getState();
+    expect(state.active?.sessionId).toBe("s1");
+    expect(state.messages).toEqual([message("m1", "streaming")]);
+    expect(state.realtimeBySessionId.s1.busy).toBe(true);
+    expect(state.runningSessionPaths).toContain("/sessions/s1.jsonl");
+  });
+
   it("restores cached streaming content when switching back to a live session", () => {
     seedConversation({
       active: active("s1", "/sessions/s1.jsonl"),

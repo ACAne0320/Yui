@@ -11,6 +11,8 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-06-22
+
 ### Fixed
 - Update checks no longer fail for users behind shared proxies. The in-app
   updater now reads a CDN-served manifest instead of the GitHub API, whose

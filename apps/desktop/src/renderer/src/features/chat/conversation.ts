@@ -157,11 +157,19 @@ async function titleizeSession(sessionId: string, firstMessage: string) {
   }
 }
 
+// Set while a new session is being spun up (scratch dir → open → subscribe).
+// During that window the input still holds its text, so a second Enter would
+// otherwise race in and create a duplicate session.
+let creatingSession = false;
+
 async function send(override?: string) {
   const { models } = readContext();
   const state = useChatStore.getState();
   const text = (override ?? state.input).trim();
-  if (!text) return;
+  const hasImages = state.attachments.length > 0;
+  if (!text && !hasImages) return;
+  const isNewSession = !state.active?.sessionId;
+  if (isNewSession && creatingSession) return;
   const images = state.attachments.map((attachment) => ({
     type: "image" as const,
     data: attachment.base64,
@@ -179,8 +187,8 @@ async function send(override?: string) {
 
   useUiStore.getState().setNotice(null);
   let sessionId = state.active?.sessionId;
-  const isNewSession = !sessionId;
   let localId: string | undefined;
+  if (isNewSession) creatingSession = true;
   try {
     if (!sessionId) {
       // No directory chosen → spin up a throwaway scratch workspace for this
@@ -200,8 +208,13 @@ async function send(override?: string) {
       sessionId = opened.sessionId;
       await api.agents.subscribe({ sessionId });
       // Placeholder title (truncated first message) shown immediately and kept
-      // as the fallback; a model-generated title animates in once ready.
-      const title = text.length > 26 ? `${text.slice(0, 26)}…` : text;
+      // as the fallback; a model-generated title animates in once ready. An
+      // image-only first message has no text to truncate or titleize.
+      const title = text
+        ? text.length > 26
+          ? `${text.slice(0, 26)}…`
+          : text
+        : i18n.t("chat.composer.imageTitle");
       useChatStore.setState({
         active: {
           sessionId,
@@ -246,7 +259,7 @@ async function send(override?: string) {
       // when the whole run ends, while the title only needs the first user
       // message (already persisted by the time the turn starts).
       const run = api.agents.prompt({ sessionId, text, images });
-      if (isNewSession) void titleizeSession(sessionId, text);
+      if (isNewSession && text) void titleizeSession(sessionId, text);
       await run;
       // An extension may consume the input via the `input` hook without starting
       // a turn (no agent_start/agent_end to drive busy), so reconcile with the
@@ -272,6 +285,8 @@ async function send(override?: string) {
     const busy = sessionId ? await api.agents.isBusy({ sessionId }).catch(() => false) : false;
     useChatStore.setState({ busy });
     useUiStore.getState().setNotice(formatError(error));
+  } finally {
+    if (isNewSession) creatingSession = false;
   }
 }
 

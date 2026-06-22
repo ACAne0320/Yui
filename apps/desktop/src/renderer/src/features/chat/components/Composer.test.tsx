@@ -22,8 +22,6 @@ function props() {
     onBrowseCwd: vi.fn(async () => undefined),
     thinking: "medium" as const,
     onThinking: vi.fn(),
-    enabledTools: new Set<string>(),
-    onToggleTool: vi.fn(),
     noMemory: false,
     onToggleNoMemory: vi.fn(),
   };
@@ -66,6 +64,19 @@ describe("Composer", () => {
     expect(
       screen.getByPlaceholderText("Add a follow-up to run after the current response…"),
     ).toBeTruthy();
+  });
+
+  it("enables send for an image-only draft with no text", () => {
+    render(
+      <Composer
+        {...props()}
+        imagesSupported
+        attachments={[
+          { id: "a1", name: "shot.png", mimeType: "image/png", base64: "x", objectUrl: "blob:1" },
+        ]}
+      />,
+    );
+    expect((screen.getByTitle("Send") as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("keeps the attach button enabled regardless of image support", () => {

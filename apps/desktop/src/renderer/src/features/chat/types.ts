@@ -50,8 +50,6 @@ export interface ComposerProps {
   onBrowseCwd: () => Promise<void>;
   thinking: ThinkingLevel;
   onThinking: (level: ThinkingLevel) => void;
-  enabledTools: Set<string>;
-  onToggleTool: (id: string) => void;
   /** New-chat toggle: open the next session without persona memory. */
   noMemory: boolean;
   onToggleNoMemory: () => void;

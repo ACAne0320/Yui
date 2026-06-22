@@ -176,7 +176,12 @@
 
 .ui-popover {
   z-index: 70;
-  width: 320px;
+  /* Shrink-wrap to the content: short menus (thinking levels) stay compact,
+     while long rows (model names, working-dir paths) cap at max-width and
+     ellipsize. The available-width var keeps it inside the viewport. */
+  width: max-content;
+  min-width: 180px;
+  max-width: min(340px, var(--radix-popover-content-available-width));
   max-height: min(420px, var(--radix-popover-content-available-height));
   overflow-y: auto;
   padding: 8px;
@@ -184,6 +189,37 @@
   border-radius: 13px;
   background: var(--raised);
   box-shadow: var(--shadow-pop);
+  /* Grow from the trigger edge rather than the panel center. */
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+/* Hover opens/closes these, so both directions are animated — a bare appear and
+   a bare vanish both read as abrupt. Radix keeps the node mounted through the
+   closed-state animation. The global reduced-motion rule disables both. */
+.ui-popover[data-state="open"] {
+  animation: popover-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ui-popover[data-state="closed"] {
+  animation: popover-out 0.12s ease-in;
+}
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes popover-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(2px) scale(0.97);
+  }
 }
 
 .toast-viewport {

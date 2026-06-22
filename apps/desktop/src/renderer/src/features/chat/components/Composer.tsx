@@ -8,7 +8,7 @@ import { Icon } from "@renderer/ui/Icon";
 import { Popover } from "@renderer/ui/Popover";
 import { ProviderLogo } from "@renderer/ui/ProviderLogo";
 import { SmoothCaret } from "@renderer/ui/SmoothCaret";
-import { fallbackThinkingLevels, thinkingLabelKeys, toolOptions } from "../constants";
+import { fallbackThinkingLevels, thinkingLabelKeys } from "../constants";
 import type { ComposerProps } from "../types";
 
 export function Composer({
@@ -29,8 +29,6 @@ export function Composer({
   onBrowseCwd,
   thinking,
   onThinking,
-  enabledTools,
-  onToggleTool,
   noMemory,
   onToggleNoMemory,
   locked = false,
@@ -224,61 +222,6 @@ export function Composer({
             </div>
           </Popover>
 
-          <Popover
-            trigger={
-              <button className="composer-button" title={t("chat.composer.tools")}>
-                <Icon name="wand" size={15} />
-              </button>
-            }
-          >
-            <div className="popover-title">{t("chat.composer.tools")}</div>
-            <div className="popover-note">{t("chat.composer.toolsNote")}</div>
-            {toolOptions.map((tool) => (
-              <button className="popover-item" key={tool.id} onClick={() => onToggleTool(tool.id)}>
-                <Icon name={tool.icon} size={14} />
-                <span>
-                  {t(tool.nameKey)}
-                  <small>{t(tool.descriptionKey)}</small>
-                </span>
-                <span className="mini-toggle" data-on={enabledTools.has(tool.id)} />
-              </button>
-            ))}
-          </Popover>
-
-          {!locked && (
-            <button
-              className="composer-button"
-              data-active={noMemory || undefined}
-              title={noMemory ? t("chat.composer.memoryOff") : t("chat.composer.memoryOn")}
-              onClick={onToggleNoMemory}
-            >
-              <Icon name={noMemory ? "eyeOff" : "db"} size={15} />
-            </button>
-          )}
-
-          <Popover
-            trigger={
-              <button className="composer-button thinking-button" data-level={thinking}>
-                <Icon name="spark" size={15} />
-                <span>{t(thinkingLabelKeys[thinking])}</span>
-              </button>
-            }
-          >
-            <div className="popover-title">{t("chat.composer.thinkingLevel")}</div>
-            {availableLevels.map((level) => (
-              <button
-                className="popover-item thinking-option"
-                key={level}
-                data-active={level === thinking}
-                onClick={() => onThinking(level)}
-              >
-                <i data-level={level} />
-                <span>{t(thinkingLabelKeys[level])}</span>
-                {level === thinking && <Icon name="check" size={13} />}
-              </button>
-            ))}
-          </Popover>
-
           <div className="composer-spacer" />
 
           <Popover
@@ -319,6 +262,41 @@ export function Composer({
             )}
           </Popover>
 
+          <Popover
+            align="end"
+            trigger={
+              <button className="composer-button thinking-button" data-level={thinking}>
+                <Icon name="spark" size={15} />
+                <span>{t(thinkingLabelKeys[thinking])}</span>
+              </button>
+            }
+          >
+            <div className="popover-title">{t("chat.composer.thinkingLevel")}</div>
+            {availableLevels.map((level) => (
+              <button
+                className="popover-item thinking-option"
+                key={level}
+                data-active={level === thinking}
+                onClick={() => onThinking(level)}
+              >
+                <i data-level={level} />
+                <span>{t(thinkingLabelKeys[level])}</span>
+                {level === thinking && <Icon name="check" size={13} />}
+              </button>
+            ))}
+          </Popover>
+
+          {!locked && (
+            <button
+              className="composer-button"
+              data-active={noMemory || undefined}
+              title={noMemory ? t("chat.composer.incognitoOn") : t("chat.composer.incognitoOff")}
+              onClick={onToggleNoMemory}
+            >
+              <Icon name={noMemory ? "eyeOff" : "eye"} size={15} />
+            </button>
+          )}
+
           {busy && onAbort && (
             <button
               className="abort-button"
@@ -330,7 +308,7 @@ export function Composer({
           )}
           <button
             className="send-button"
-            disabled={!input.trim()}
+            disabled={!input.trim() && attachments.length === 0}
             onClick={() => void onSend()}
             title={t("chat.composer.send")}
           >

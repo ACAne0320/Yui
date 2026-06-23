@@ -11,6 +11,21 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+### Added
+- Rename a chat from the sidebar: hover a session and use the rename action to
+  set a custom title.
+  ([`1bc3b03`](https://github.com/ACAne0320/Yui/commit/1bc3b03f18f42adf4e1f02fbe21c541ab8857d01))
+
+### Changed
+- Switching the interface language and the persona Identity/Memory tabs now
+  animates with a sliding highlight instead of snapping.
+  ([`1ca46eb`](https://github.com/ACAne0320/Yui/commit/1ca46ebbd818b5d8886b8d59181467a206fea43b))
+
+### Fixed
+- Switching between sessions no longer briefly flashes the empty new-chat
+  screen before the selected conversation loads.
+  ([`73c259d`](https://github.com/ACAne0320/Yui/commit/73c259d4295bf7496194aed7b9f2bc4a2a7e6089))
+
 ## [0.0.5] - 2026-06-22
 
 ### Fixed

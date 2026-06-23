@@ -11,6 +11,8 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+## [0.0.6] - 2026-06-23
+
 ### Added
 - Rename a chat from the sidebar: hover a session and use the rename action to
   set a custom title.

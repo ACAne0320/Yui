@@ -90,7 +90,6 @@ export const zhCN = {
       noModels: "没有已授权的模型，请先前往提供商设置。",
       stop: "停止生成",
       send: "发送",
-      imageTitle: "图片",
       incognitoOff: "无痕模式（关）· 点击以无痕方式开始此对话",
       incognitoOn: "无痕模式（开）· 不使用也不保存记忆，点击恢复",
     },

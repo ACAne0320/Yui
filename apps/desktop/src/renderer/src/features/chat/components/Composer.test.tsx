@@ -66,7 +66,7 @@ describe("Composer", () => {
     ).toBeTruthy();
   });
 
-  it("enables send for an image-only draft with no text", () => {
+  it("disables send for an image-only draft with no text", () => {
     render(
       <Composer
         {...props()}
@@ -76,7 +76,7 @@ describe("Composer", () => {
         ]}
       />,
     );
-    expect((screen.getByTitle("Send") as HTMLButtonElement).disabled).toBe(false);
+    expect((screen.getByTitle("Send") as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("keeps the attach button enabled regardless of image support", () => {

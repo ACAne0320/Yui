@@ -308,7 +308,7 @@ export function Composer({
           )}
           <button
             className="send-button"
-            disabled={!input.trim() && attachments.length === 0}
+            disabled={!input.trim()}
             onClick={() => void onSend()}
             title={t("chat.composer.send")}
           >

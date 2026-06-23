@@ -188,8 +188,10 @@ async function send(override?: string) {
   const { models } = readContext();
   const state = useChatStore.getState();
   const text = (override ?? state.input).trim();
-  const hasImages = state.attachments.length > 0;
-  if (!text && !hasImages) return;
+  // Image-only turns are not allowed: a Pi user message always carries a
+  // (possibly empty) text block, and providers like OpenAI/Anthropic reject an
+  // empty text block outright ("the request is invalid"). Require real text.
+  if (!text) return;
   const isNewSession = !state.active?.sessionId;
   if (isNewSession && creatingSession) return;
   const images = state.attachments.map((attachment) => ({
@@ -230,13 +232,8 @@ async function send(override?: string) {
       sessionId = opened.sessionId;
       await api.agents.subscribe({ sessionId });
       // Placeholder title (truncated first message) shown immediately and kept
-      // as the fallback; a model-generated title animates in once ready. An
-      // image-only first message has no text to truncate or titleize.
-      const title = text
-        ? text.length > 26
-          ? `${text.slice(0, 26)}…`
-          : text
-        : i18n.t("chat.composer.imageTitle");
+      // as the fallback; a model-generated title animates in once ready.
+      const title = text.length > 26 ? `${text.slice(0, 26)}…` : text;
       useChatStore.setState({
         active: {
           sessionId,
@@ -281,7 +278,7 @@ async function send(override?: string) {
       // when the whole run ends, while the title only needs the first user
       // message (already persisted by the time the turn starts).
       const run = api.agents.prompt({ sessionId, text, images });
-      if (isNewSession && text) void titleizeSession(sessionId, text);
+      if (isNewSession) void titleizeSession(sessionId, text);
       await run;
       // An extension may consume the input via the `input` hook without starting
       // a turn (no agent_start/agent_end to drive busy), so reconcile with the

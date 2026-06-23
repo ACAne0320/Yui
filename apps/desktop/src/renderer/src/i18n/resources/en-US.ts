@@ -98,7 +98,6 @@ export const enUS = {
       noModels: "No authorized models. Configure a provider first.",
       stop: "Stop generating",
       send: "Send",
-      imageTitle: "Image",
       incognitoOff: "Incognito off — start this chat without memory",
       incognitoOn: "Incognito on — no memory used or saved; click to restore",
     },

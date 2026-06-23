@@ -85,6 +85,13 @@ export const deleteSessionInputSchema = z.object({
 });
 export type DeleteSessionInput = z.infer<typeof deleteSessionInputSchema>;
 
+export const renameSessionInputSchema = z.object({
+  sessionPath: z.string().min(1),
+  /** New display name; trimmed and bounded so a stray value cannot bloat the log. */
+  title: z.string().trim().min(1).max(200),
+});
+export type RenameSessionInput = z.infer<typeof renameSessionInputSchema>;
+
 /** A persisted session as seen from the catalog, without loading full history. */
 export interface AppSessionSummary {
   sessionId: string;

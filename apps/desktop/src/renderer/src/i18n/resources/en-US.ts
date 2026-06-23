@@ -69,6 +69,9 @@ export const enUS = {
       deleteTitle: "Delete chat",
       deleteConfirm:
         'Delete "{{title}}"? This permanently removes the conversation from disk and cannot be undone.',
+      rename: "Rename chat",
+      renameTitle: "Rename chat",
+      renamePlaceholder: "Chat name",
     },
     composer: {
       followUpPlaceholder: "Add a follow-up to run after the current response…",

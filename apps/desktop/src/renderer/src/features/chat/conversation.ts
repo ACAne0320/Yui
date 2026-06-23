@@ -145,6 +145,24 @@ async function deleteConversation(summary: AppSessionSummary) {
   }
 }
 
+async function renameConversation(summary: AppSessionSummary, title: string) {
+  const trimmed = title.trim();
+  // No-op on an empty name or one that matches what's already shown.
+  if (!trimmed || trimmed === summary.title) return;
+  try {
+    await api.sessions.rename({ sessionPath: summary.sessionPath, title: trimmed });
+    // Reflect the new name on the open thread's header right away; the sidebar
+    // picks it up from the re-fetched list.
+    const active = useChatStore.getState().active;
+    if (active?.sessionId && active.sessionPath === summary.sessionPath) {
+      updateConversationTitle(active.sessionId, trimmed);
+    }
+    await queryClient.invalidateQueries({ queryKey: queryKeys.sessions });
+  } catch (error) {
+    useUiStore.getState().setNotice(formatError(error));
+  }
+}
+
 // Fetch a model-generated title for a freshly started session and animate it
 // into the header. Best-effort: on any failure we silently keep the placeholder
 // (truncated first message). The sidebar refreshes itself via the
@@ -366,6 +384,7 @@ export const conversation = {
   chooseModel,
   chooseThinking,
   deleteConversation,
+  renameConversation,
   openDirectory,
   openConversation,
   detachActiveSession,

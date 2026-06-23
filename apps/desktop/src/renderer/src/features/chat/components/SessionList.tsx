@@ -4,6 +4,7 @@ import type { AppSessionSummary } from "@yui/contracts";
 import { useProfile } from "@renderer/data/profile";
 import { ConfirmDialog } from "@renderer/ui/ConfirmDialog";
 import { Icon } from "@renderer/ui/Icon";
+import { RenameDialog } from "@renderer/ui/RenameDialog";
 import { sessionGroup, TEMP_GROUP_KEY } from "../lib";
 
 const timeGroupKeys = {
@@ -23,6 +24,7 @@ export function SessionList({
   loading,
   onPick,
   onDelete,
+  onRename,
 }: {
   sessions: AppSessionSummary[];
   activePath?: string;
@@ -31,11 +33,13 @@ export function SessionList({
   loading: boolean;
   onPick: (session: AppSessionSummary) => void;
   onDelete: (session: AppSessionSummary) => void;
+  onRename: (session: AppSessionSummary, title: string) => void;
 }) {
   const { t } = useTranslation();
   const profile = useProfile();
   const [groupMode, setGroupMode] = useState<"time" | "workspace">("time");
   const [pendingDelete, setPendingDelete] = useState<AppSessionSummary | null>(null);
+  const [pendingRename, setPendingRename] = useState<AppSessionSummary | null>(null);
   const homeDir = profile.data?.config.homeDir ?? "";
   const scratchPrefix = homeDir ? `${toPosix(homeDir)}/scratch/` : "";
   const groups = useMemo(() => {
@@ -112,15 +116,26 @@ export function SessionList({
                       )}
                       <span>{title}</span>
                     </button>
-                    <button
-                      className="conversation-row-delete"
-                      disabled={loading}
-                      title={t("chat.sessionList.delete")}
-                      aria-label={t("chat.sessionList.delete")}
-                      onClick={() => setPendingDelete(session)}
-                    >
-                      <Icon name="trash" size={14} />
-                    </button>
+                    <div className="conversation-row-actions">
+                      <button
+                        className="conversation-row-action"
+                        disabled={loading}
+                        title={t("chat.sessionList.rename")}
+                        aria-label={t("chat.sessionList.rename")}
+                        onClick={() => setPendingRename(session)}
+                      >
+                        <Icon name="edit" size={14} />
+                      </button>
+                      <button
+                        className="conversation-row-action conversation-row-delete"
+                        disabled={loading}
+                        title={t("chat.sessionList.delete")}
+                        aria-label={t("chat.sessionList.delete")}
+                        onClick={() => setPendingDelete(session)}
+                      >
+                        <Icon name="trash" size={14} />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -145,6 +160,17 @@ export function SessionList({
           setPendingDelete(null);
         }}
         onCancel={() => setPendingDelete(null)}
+      />
+      <RenameDialog
+        open={pendingRename !== null}
+        title={t("chat.sessionList.renameTitle")}
+        placeholder={t("chat.sessionList.renamePlaceholder")}
+        initialValue={pendingRename?.title ?? ""}
+        onSubmit={(value) => {
+          if (pendingRename) onRename(pendingRename, value);
+          setPendingRename(null);
+        }}
+        onCancel={() => setPendingRename(null)}
       />
     </>
   );

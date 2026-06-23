@@ -62,6 +62,9 @@ export const zhCN = {
       delete: "删除对话",
       deleteTitle: "删除对话",
       deleteConfirm: "删除“{{title}}”？这将从磁盘永久移除该对话，且无法撤销。",
+      rename: "重命名对话",
+      renameTitle: "重命名对话",
+      renamePlaceholder: "对话名称",
     },
     composer: {
       followUpPlaceholder: "输入后续要求，将在当前回复完成后继续…",

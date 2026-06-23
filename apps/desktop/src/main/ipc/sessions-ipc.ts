@@ -4,6 +4,7 @@ import {
   getHistoryInputSchema,
   getSessionInfoInputSchema,
   listSessionsInputSchema,
+  renameSessionInputSchema,
 } from "@yui/contracts";
 import { desktopIpcChannels } from "../../shared/ipc-channels";
 import type { IpcRegistrar } from "./handler";
@@ -30,5 +31,10 @@ export function registerSessionsIpc(registrar: IpcRegistrar, runtime: AppRuntime
     desktopIpcChannels.sessions.delete,
     deleteSessionInputSchema,
     (_event, input) => runtime.sessions.delete(input),
+  );
+  registrar.handleInput(
+    desktopIpcChannels.sessions.rename,
+    renameSessionInputSchema,
+    (_event, input) => runtime.sessions.rename(input),
   );
 }

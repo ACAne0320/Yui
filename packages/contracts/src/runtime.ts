@@ -9,6 +9,7 @@ import type {
   GetSessionInfoInput,
   ListSessionsInput,
   GenerateTitleInput,
+  RenameSessionInput,
   OpenSessionInput,
   OpenSessionResult,
   PromptInput,
@@ -212,6 +213,12 @@ export interface SessionCatalog {
   getAttachment(sessionPath: string, attachmentId: string): Promise<SessionAttachment | undefined>;
   /** Permanently remove a session's file from disk. Irreversible. */
   delete(input: DeleteSessionInput): Promise<void>;
+  /**
+   * Set a session's display name, persisted as a `session_info` entry (latest
+   * wins). Works on any session by path; a live session's next cold read picks
+   * up the new name.
+   */
+  rename(input: RenameSessionInput): Promise<void>;
 }
 
 export interface AgentService {

@@ -15,6 +15,7 @@ import type {
   ExtensionUiSnapshot,
   GetHistoryInput,
   GetSessionInfoInput,
+  RenameSessionInput,
   DeleteMemoryInput,
   ListMemoryInput,
   ListSessionsInput,
@@ -152,6 +153,7 @@ export interface YuiDesktopApi {
     getInfo(input: GetSessionInfoInput): Promise<AppSessionInfo>;
     getHistory(input: GetHistoryInput): Promise<AppMessage[]>;
     delete(input: DeleteSessionInput): Promise<void>;
+    rename(input: RenameSessionInput): Promise<void>;
   };
   agents: {
     openSession(input: OpenSessionInput): Promise<OpenSessionResult>;

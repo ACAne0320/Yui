@@ -191,6 +191,7 @@ button:disabled {
   text-transform: uppercase;
 }
 .conversation-row {
+  position: relative;
   width: 100%;
   display: flex;
   align-items: center;
@@ -210,6 +211,14 @@ button:disabled {
   color: inherit;
   font-weight: inherit;
   text-align: left;
+  /* The title uses the full row width when idle. On hover/focus the right pad
+     grows in to clear the action cluster, so the ellipsis boundary slides in
+     exactly as the actions appear — they never overlap mid-transition. */
+  transition: padding-right 0.18s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+.conversation-row:hover .conversation-row-pick,
+.conversation-row:has(.conversation-row-action:focus-visible) .conversation-row-pick {
+  padding-right: 64px;
 }
 .conversation-running {
   width: 7px;
@@ -247,31 +256,50 @@ button:disabled {
   background: var(--mint-soft);
   font-weight: 500;
 }
-/* Trash affordance: hidden until the row is hovered (or the button is focused
-   for keyboard users), tinted danger on its own hover. */
-.conversation-row-delete {
+/* Row actions (rename, delete) overlay the trailing edge, so they reserve no
+   space when idle. They fade and slide in on row hover or keyboard focus, in
+   step with the title's padding above. Hidden to pointer events while idle so
+   they don't intercept clicks meant for the row. The trash variant tints danger
+   on its own hover. */
+.conversation-row-actions {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: flex;
+  gap: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(4px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+.conversation-row:hover .conversation-row-actions,
+.conversation-row:has(.conversation-row-action:focus-visible) .conversation-row-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+}
+.conversation-row-action {
   display: grid;
   place-items: center;
-  flex-shrink: 0;
   width: 26px;
   height: 26px;
-  margin-right: 5px;
   border: 0;
   border-radius: 7px;
   background: transparent;
   color: var(--tertiary);
-  opacity: 0;
   transition: 0.14s ease;
 }
-.conversation-row:hover .conversation-row-delete,
-.conversation-row-delete:focus-visible {
-  opacity: 1;
+.conversation-row-action:hover {
+  color: var(--ink);
+  background: rgba(37, 33, 29, 0.06);
 }
 .conversation-row-delete:hover {
   color: var(--danger);
   background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
-.conversation-row-delete:disabled {
+.conversation-row-action:disabled {
   opacity: 0;
 }
 .sidebar-empty {
@@ -2510,6 +2538,21 @@ button.mini-toggle:disabled {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 18px;
+}
+.rename-dialog input {
+  width: 100%;
+  margin-top: 14px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-firm);
+  border-radius: 9px;
+  background: var(--muted);
+  color: var(--ink);
+  font-size: 13px;
+}
+.rename-dialog input:focus {
+  outline: none;
+  border-color: var(--mint);
+  background: var(--raised);
 }
 
 /* --- In-app updates ------------------------------------------------------ */

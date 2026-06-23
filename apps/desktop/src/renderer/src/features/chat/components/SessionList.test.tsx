@@ -21,11 +21,17 @@ function session(over: Partial<AppSessionSummary> = {}): AppSessionSummary {
   };
 }
 
-function renderList(onDelete = vi.fn()) {
+function renderList(onDelete = vi.fn(), onRename = vi.fn()) {
   render(
-    <SessionList sessions={[session()]} loading={false} onPick={vi.fn()} onDelete={onDelete} />,
+    <SessionList
+      sessions={[session()]}
+      loading={false}
+      onPick={vi.fn()}
+      onDelete={onDelete}
+      onRename={onRename}
+    />,
   );
-  return onDelete;
+  return { onDelete, onRename };
 }
 
 describe("SessionList delete", () => {
@@ -34,7 +40,7 @@ describe("SessionList delete", () => {
   });
 
   it("confirms before deleting and only fires onDelete on confirm", () => {
-    const onDelete = renderList();
+    const { onDelete } = renderList();
 
     fireEvent.click(screen.getByRole("button", { name: "Delete chat" }));
     // The confirmation is up and warns it is irreversible; nothing deleted yet.
@@ -47,12 +53,42 @@ describe("SessionList delete", () => {
   });
 
   it("cancels without deleting", () => {
-    const onDelete = renderList();
+    const { onDelete } = renderList();
 
     fireEvent.click(screen.getByRole("button", { name: "Delete chat" }));
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(onDelete).not.toHaveBeenCalled();
     expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+});
+
+describe("SessionList rename", () => {
+  beforeEach(async () => {
+    await changeLocale("en-US");
+  });
+
+  it("renames through the dialog, prefilled with the current title", () => {
+    const { onRename } = renderList();
+
+    fireEvent.click(screen.getByRole("button", { name: "Rename chat" }));
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    expect(input.value).toBe("My chat");
+
+    fireEvent.change(input, { target: { value: "Renamed" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(onRename).toHaveBeenCalledWith(expect.objectContaining({ sessionId: "s1" }), "Renamed");
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("does not rename on cancel", () => {
+    const { onRename } = renderList();
+
+    fireEvent.click(screen.getByRole("button", { name: "Rename chat" }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(onRename).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

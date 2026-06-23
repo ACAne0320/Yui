@@ -67,9 +67,7 @@ export function Segmented<T extends string>({
         className="segmented-thumb"
         aria-hidden="true"
         style={
-          thumb
-            ? { transform: `translateX(${thumb.left}px)`, width: thumb.width }
-            : { opacity: 0 }
+          thumb ? { transform: `translateX(${thumb.left}px)`, width: thumb.width } : { opacity: 0 }
         }
       />
       {options.map((option) => {

@@ -57,6 +57,7 @@ export function Sidebar() {
         loading={loading}
         onPick={(session) => void conversation.openConversation(session)}
         onDelete={(session) => void conversation.deleteConversation(session)}
+        onRename={(session, title) => conversation.renameConversation(session, title)}
       />
       {showUpdate && (
         <button className="update-entry" onClick={() => setUpdateOpen(true)}>

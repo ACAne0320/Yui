@@ -93,6 +93,20 @@ describe("PiSessionCatalog", () => {
     expect(b).toMatchObject({ title: "Named", messageCount: 1 });
   });
 
+  it("renames a session: persists a trimmed name that wins over the first message", async () => {
+    const file = join(sessionDir, "r.jsonl");
+    writeSession(file, "/proj/r", { user: "hello R", assistant: "hi R" });
+
+    const catalog = new PiSessionCatalog(config("/proj/r"));
+    await catalog.rename({ sessionPath: file, title: "  My renamed chat  " });
+
+    // Written through to disk as a session_info entry (cold write persists)...
+    expect(readFileSync(file, "utf8")).toContain('"type":"session_info"');
+    // ...and surfaced (trimmed) as the title on the next cold read.
+    const info = await catalog.getInfo({ sessionPath: file });
+    expect(info.title).toBe("My renamed chat");
+  });
+
   it("filters by cwd when one is given", async () => {
     writeSession(join(sessionDir, "a.jsonl"), "/proj/a", { user: "hello A" });
     writeSession(join(sessionDir, "b.jsonl"), "/proj/b", { user: "hello B" });

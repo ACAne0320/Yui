@@ -15,6 +15,7 @@ import {
   type GetHistoryInput,
   type GetSessionInfoInput,
   type ListSessionsInput,
+  type RenameSessionInput,
   type RuntimeConfig,
   type SessionAttachment,
   type SessionCatalog,
@@ -129,6 +130,19 @@ export class PiSessionCatalog implements SessionCatalog {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new AppRuntimeError("internal", `Failed to delete session: ${message}`, error);
+    }
+  }
+
+  async rename(input: RenameSessionInput): Promise<void> {
+    // The display name is an append-only `session_info` entry; the latest one
+    // wins. Cold-opening persists (open() uses persist=true), so this works for
+    // sessions that aren't live in the pool. `appendSessionInfo` trims for us.
+    const manager = this.open(input.sessionPath);
+    try {
+      manager.appendSessionInfo(input.title);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new AppRuntimeError("internal", `Failed to rename session: ${message}`, error);
     }
   }
 

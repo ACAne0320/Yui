@@ -77,6 +77,7 @@ export function createYuiApi(
       getInfo: (input) => invoke(desktopIpcChannels.sessions.getInfo, input),
       getHistory: (input) => invoke(desktopIpcChannels.sessions.getHistory, input),
       delete: (input) => invoke(desktopIpcChannels.sessions.delete, input),
+      rename: (input) => invoke(desktopIpcChannels.sessions.rename, input),
     },
     agents: {
       openSession: (input) => invoke(desktopIpcChannels.agents.openSession, input),

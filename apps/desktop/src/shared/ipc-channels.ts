@@ -58,6 +58,7 @@ export const desktopIpcChannels = {
     getInfo: "sessions:get-info",
     getHistory: "sessions:get-history",
     delete: "sessions:delete",
+    rename: "sessions:rename",
   },
   agents: {
     openSession: "agents:open-session",

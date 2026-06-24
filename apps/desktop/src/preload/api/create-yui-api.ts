@@ -57,6 +57,7 @@ export function createYuiApi(
       getSoul: () => invoke(desktopIpcChannels.persona.getSoul),
       saveSoul: (input) => invoke(desktopIpcChannels.persona.saveSoul, input),
       listMemory: (input) => invoke(desktopIpcChannels.persona.listMemory, input),
+      listMemoryProjects: () => invoke(desktopIpcChannels.persona.listMemoryProjects),
       saveMemory: (input) => invoke(desktopIpcChannels.persona.saveMemory, input),
       deleteMemory: (input) => invoke(desktopIpcChannels.persona.deleteMemory, input),
     },

@@ -2301,6 +2301,39 @@ button.mini-toggle:disabled {
   font-size: 12.5px;
   font-weight: 500;
 }
+/* Project memory cwd switcher: reads as the section title but opens a Popover
+   to pick which project's memory to view. */
+.memory-cwd-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: -6px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.memory-cwd-switch:hover {
+  background: var(--faint);
+}
+.memory-cwd-switch .memory-cwd-path {
+  color: var(--subtle);
+  font: 11.5px var(--mono);
+}
+/* Count sits at the row's end (the path span flexes to fill). `flex: none`
+   overrides `.popover-item > span`'s `flex: 1` — otherwise the count would split
+   the row with the path and force the path to ellipsize. Sized to content so the
+   popover grows to the full path (like the composer) and counts line up at the
+   right edge across rows. */
+.popover-item > .memory-cwd-count {
+  flex: none;
+  color: var(--tertiary);
+  font: 10px var(--mono);
+}
 .memory-empty {
   margin-top: 10px;
   color: var(--tertiary);
@@ -2326,23 +2359,26 @@ button.mini-toggle:disabled {
 .memory-item-text {
   min-width: 0;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.memory-item-name {
   color: var(--ink);
   font-size: 12px;
-}
-.memory-item-desc {
-  color: var(--subtle);
-  font-size: 11px;
-  line-height: 1.45;
+  line-height: 1.5;
+  /* Two-line preview; the full text is in the editor. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .memory-item-actions {
   flex: none;
   display: flex;
   gap: 4px;
+  /* Quiet at rest; reveal on row hover or keyboard focus to cut clutter. */
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.memory-item:hover .memory-item-actions,
+.memory-item:focus-within .memory-item-actions {
+  opacity: 1;
 }
 .memory-item-actions button {
   width: 28px;
@@ -2359,29 +2395,30 @@ button.mini-toggle:disabled {
   color: var(--subtle);
   background: var(--faint);
 }
-.memory-editor {
-  flex: 1;
+/* Delete tints danger on hover, matching the session-row delete affordance. */
+.memory-item-actions .memory-delete:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
-.memory-editor textarea {
+.memory-dialog {
+  width: min(460px, calc(100vw - 48px));
+}
+.memory-dialog textarea {
   width: 100%;
-  min-height: 76px;
+  min-height: 132px;
+  margin-top: 14px;
   padding: 10px 12px;
   border: 1px solid var(--border-firm);
   border-radius: 9px;
-  background: var(--raised);
+  background: var(--muted);
   color: var(--ink);
   font: 12px / 1.55 var(--mono);
   resize: vertical;
 }
-.memory-editor textarea:focus {
+.memory-dialog textarea:focus {
   outline: 0;
   border-color: var(--mint);
-  box-shadow: 0 0 0 3px var(--mint-soft);
-}
-.memory-editor-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 9px;
+  background: var(--raised);
 }
 
 /* Chat → "remembered" card */

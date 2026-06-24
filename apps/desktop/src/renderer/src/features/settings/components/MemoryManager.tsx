@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { MemoryScope } from "@yui/contracts";
 import { useDeleteMemory, useMemoryEntries, useSaveMemory } from "@renderer/data/persona";
@@ -15,6 +15,78 @@ function deriveFields(content: string): { name: string; description: string } {
   return { name: cut(first, 80), description: cut(collapsed, 140) };
 }
 
+/**
+ * Focused add/edit surface. A modal (rather than an inline editor spliced into
+ * the list) gives the textarea room and keeps the list layout stable.
+ * Cmd/Ctrl+Enter saves; Escape cancels.
+ */
+function MemoryEditorDialog({
+  open,
+  title,
+  value,
+  error,
+  pending,
+  onChange,
+  onSubmit,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  value: string;
+  error: string | null;
+  pending: boolean;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (open) ref.current?.focus();
+  }, [open]);
+  if (!open) return null;
+
+  return (
+    <div
+      className="confirm-overlay"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") onCancel();
+      }}
+    >
+      <div className="confirm-dialog memory-dialog" role="dialog" aria-modal="true" aria-label={title}>
+        <h3>{title}</h3>
+        <textarea
+          ref={ref}
+          value={value}
+          placeholder={t("settings.persona.memory.placeholder")}
+          spellCheck={false}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+              event.preventDefault();
+              onSubmit();
+            }
+          }}
+        />
+        {error && <div className="field-error">{error}</div>}
+        <div className="confirm-actions">
+          <button type="button" className="outline-button" onClick={onCancel}>
+            {t("settings.persona.memory.cancel")}
+          </button>
+          <button
+            type="button"
+            className="primary-button"
+            disabled={!value.trim() || pending}
+            onClick={onSubmit}
+          >
+            {t("settings.persona.memory.saveEntry")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function MemoryManager({
   scope,
   cwd,
@@ -22,12 +94,14 @@ export function MemoryManager({
 }: {
   scope: MemoryScope;
   cwd?: string;
-  title: string;
+  /** Plain text for global memory; the project section passes a cwd switcher. */
+  title: ReactNode;
 }) {
   const { t } = useTranslation();
   const entries = useMemoryEntries(scope, cwd);
   const save = useSaveMemory();
   const del = useDeleteMemory();
+  // `null` closed, `"new"` adding, otherwise the slug being edited.
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -63,87 +137,58 @@ export function MemoryManager({
     }
   };
 
-  const editor = (
-    <div className="memory-editor">
-      <textarea
-        value={draft}
-        placeholder={t("settings.persona.memory.placeholder")}
-        spellCheck={false}
-        onChange={(event) => setDraft(event.target.value)}
-      />
-      {error && <div className="field-error">{error}</div>}
-      <div className="memory-editor-actions">
-        <button
-          type="button"
-          className="primary-button"
-          disabled={!draft.trim() || save.isPending}
-          onClick={() => void submit()}
-        >
-          {t("settings.persona.memory.saveEntry")}
-        </button>
-        <button type="button" className="outline-button" onClick={close}>
-          {t("settings.persona.memory.cancel")}
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="memory-manager">
       <div className="memory-manager-head">
         <span className="memory-manager-title">{title}</span>
-        <button
-          type="button"
-          className="outline-button"
-          disabled={editing === "new"}
-          onClick={() => open("new", "")}
-        >
+        <button type="button" className="outline-button" onClick={() => open("new", "")}>
           <Icon name="plus" size={13} />
           {t("settings.persona.memory.add")}
         </button>
       </div>
 
-      {editing === "new" && editor}
-
-      {list.length === 0 && editing !== "new" ? (
+      {list.length === 0 ? (
         <div className="memory-empty">{t("settings.persona.memory.empty")}</div>
       ) : (
         <ul className="memory-list">
           {list.map((entry) => (
             <li key={entry.slug} className="memory-item">
-              {editing === entry.slug ? (
-                editor
-              ) : (
-                <>
-                  <div className="memory-item-text">
-                    <span className="memory-item-name">{entry.name}</span>
-                    {entry.description && entry.description !== entry.name && (
-                      <span className="memory-item-desc">{entry.description}</span>
-                    )}
-                  </div>
-                  <div className="memory-item-actions">
-                    <button
-                      type="button"
-                      title={t("settings.persona.memory.edit")}
-                      onClick={() => open(entry.slug, entry.content || entry.description)}
-                    >
-                      <Icon name="edit" size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      title={t("settings.persona.memory.delete")}
-                      disabled={del.isPending}
-                      onClick={() => del.mutate({ scope, cwd, slug: entry.slug })}
-                    >
-                      <Icon name="trash" size={13} />
-                    </button>
-                  </div>
-                </>
-              )}
+              {/* `description` is the whole memory collapsed and `name` its first
+                  line, so they restate each other; show one preview. */}
+              <div className="memory-item-text">{entry.description || entry.name}</div>
+              <div className="memory-item-actions">
+                <button
+                  type="button"
+                  title={t("settings.persona.memory.edit")}
+                  onClick={() => open(entry.slug, entry.content || entry.description)}
+                >
+                  <Icon name="edit" size={13} />
+                </button>
+                <button
+                  type="button"
+                  className="memory-delete"
+                  title={t("settings.persona.memory.delete")}
+                  disabled={del.isPending}
+                  onClick={() => del.mutate({ scope, cwd, slug: entry.slug })}
+                >
+                  <Icon name="trash" size={13} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       )}
+
+      <MemoryEditorDialog
+        open={editing !== null}
+        title={t(editing === "new" ? "settings.persona.memory.add" : "settings.persona.memory.edit")}
+        value={draft}
+        error={error}
+        pending={save.isPending}
+        onChange={setDraft}
+        onSubmit={() => void submit()}
+        onCancel={close}
+      />
     </div>
   );
 }

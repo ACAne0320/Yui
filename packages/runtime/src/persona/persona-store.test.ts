@@ -134,6 +134,31 @@ describe("PersonaStore", () => {
     expect(long).toMatch(/^[a-f0-9]{16}$/);
   });
 
+  it("lists project cwds that have memory with their entry counts", async () => {
+    const projectA = join(dir, "a");
+    const projectB = join(dir, "b");
+    mkdirSync(projectA);
+    mkdirSync(projectB);
+    // Global memory lives outside projects/ and must not appear as a project.
+    await store.saveMemoryEntry({ scope: "global", name: "G", description: "g", content: "g" });
+    for (const [cwd, name] of [
+      [projectA, "A1"],
+      [projectA, "A2"],
+      [projectB, "B1"],
+    ] as const) {
+      await store.saveMemoryEntry({ scope: "cwd", cwd, name, description: name, content: name });
+    }
+
+    await expect(store.listMemoryProjects()).resolves.toEqual([
+      { cwd: projectA, count: 2 },
+      { cwd: projectB, count: 1 },
+    ]);
+  });
+
+  it("reports no projects before any project memory exists", async () => {
+    await expect(store.listMemoryProjects()).resolves.toEqual([]);
+  });
+
   it("records and reports the real cwd in project MEMORY frontmatter", async () => {
     const project = join(dir, "project");
     mkdirSync(project);

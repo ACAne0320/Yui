@@ -7,6 +7,7 @@ export const queryKeys = {
   personaConfig: ["persona", "config"] as const,
   soul: ["persona", "soul"] as const,
   memory: (scope: string, cwd?: string) => ["persona", "memory", scope, cwd ?? null] as const,
+  memoryProjects: ["persona", "memory-projects"] as const,
   subagents: ["subagents"] as const,
   extensions: ["extensions"] as const,
   sessions: ["sessions"] as const,

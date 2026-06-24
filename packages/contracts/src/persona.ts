@@ -46,6 +46,14 @@ export const memoryEntrySchema = z.object({
 });
 export type MemoryEntry = z.infer<typeof memoryEntrySchema>;
 
+/** A working directory that has at least one project ("cwd"-scoped) memory,
+    surfaced so the settings panel can switch between projects. */
+export const memoryProjectSchema = z.object({
+  cwd: z.string(),
+  count: z.number().int().nonnegative(),
+});
+export type MemoryProject = z.infer<typeof memoryProjectSchema>;
+
 export const rememberInputSchema = z.object({
   text: z.string().min(1),
   scope: memoryScopeSchema,

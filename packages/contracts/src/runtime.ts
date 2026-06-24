@@ -44,6 +44,7 @@ import type {
   DeleteMemoryInput,
   ListMemoryInput,
   MemoryEntry,
+  MemoryProject,
   PersonaConfig,
   SaveMemoryInput,
   SaveSoulInput,
@@ -157,6 +158,8 @@ export interface PersonaService {
   getSoul(): Promise<SoulDoc>;
   saveSoul(input: SaveSoulInput): Promise<SoulDoc>;
   listMemory(input: ListMemoryInput): Promise<MemoryEntry[]>;
+  /** Working directories that have at least one project memory. */
+  listMemoryProjects(): Promise<MemoryProject[]>;
   saveMemory(input: SaveMemoryInput): Promise<MemoryEntry>;
   deleteMemory(input: DeleteMemoryInput): Promise<void>;
 }

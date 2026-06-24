@@ -25,6 +25,9 @@ export function registerPersonaIpc(registrar: IpcRegistrar, runtime: AppRuntime)
     listMemoryInputSchema,
     (_event, input) => runtime.persona.listMemory(input),
   );
+  registrar.handle(desktopIpcChannels.persona.listMemoryProjects, () =>
+    runtime.persona.listMemoryProjects(),
+  );
   registrar.handleInput(
     desktopIpcChannels.persona.saveMemory,
     saveMemoryInputSchema,

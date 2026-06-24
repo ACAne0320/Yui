@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  useMemoryProjects,
   usePersonaConfig,
   useSaveSoul,
   useSetPersonaConfig,
   useSoul,
 } from "@renderer/data/persona";
-import { formatError } from "@renderer/lib/format";
+import { formatError, shortPath } from "@renderer/lib/format";
 import { Icon } from "@renderer/ui/Icon";
+import { Popover } from "@renderer/ui/Popover";
 import { Segmented } from "@renderer/ui/Segmented";
 import { useChatStore } from "../../chat/store";
 import { MemoryManager } from "./MemoryManager";
@@ -124,6 +126,22 @@ function MemoryTab() {
   const setPersonaConfig = useSetPersonaConfig();
   const memoryEnabled = personaConfig.data?.memoryEnabled ?? true;
   const activeCwd = useChatStore((store) => store.active?.cwd);
+  const projects = useMemoryProjects();
+
+  // Every cwd that has project memory, plus the active conversation's cwd (so
+  // its memory is reachable even before it has any entries yet), sorted stably.
+  const cwds = useMemo(() => {
+    const set = new Set<string>();
+    if (activeCwd) set.add(activeCwd);
+    for (const project of projects.data ?? []) set.add(project.cwd);
+    return [...set].toSorted((a, b) => a.localeCompare(b));
+  }, [activeCwd, projects.data]);
+
+  // Default to the active cwd; an explicit pick overrides until it leaves the list.
+  const [picked, setPicked] = useState<string | undefined>(undefined);
+  const selectedCwd = (picked && cwds.includes(picked) ? picked : undefined) ?? activeCwd ?? cwds[0];
+  const countFor = (cwd: string) =>
+    projects.data?.find((project) => project.cwd === cwd)?.count ?? 0;
 
   return (
     <div className="settings-section persona-memory">
@@ -146,11 +164,39 @@ function MemoryTab() {
       </div>
 
       <MemoryManager scope="global" title={t("settings.persona.memory.globalTitle")} />
-      {activeCwd ? (
+      {selectedCwd ? (
         <MemoryManager
+          // Remount on cwd change so a half-open editor doesn't carry across.
+          key={selectedCwd}
           scope="cwd"
-          cwd={activeCwd}
-          title={t("settings.persona.memory.projectTitle")}
+          cwd={selectedCwd}
+          title={
+            <Popover
+              trigger={
+                <button type="button" className="memory-cwd-switch">
+                  <span>{t("settings.persona.memory.projectTitle")}</span>
+                  <Icon name="folder" size={12} />
+                  <span className="memory-cwd-path">{shortPath(selectedCwd)}</span>
+                  <Icon name="chevron" size={11} />
+                </button>
+              }
+            >
+              <div className="popover-title">{t("settings.persona.memory.projectTitle")}</div>
+              {cwds.map((cwd) => (
+                <button
+                  key={cwd}
+                  type="button"
+                  className="popover-item"
+                  data-active={cwd === selectedCwd}
+                  onClick={() => setPicked(cwd)}
+                >
+                  <Icon name="folder" size={14} />
+                  <span>{shortPath(cwd)}</span>
+                  {countFor(cwd) > 0 && <span className="memory-cwd-count">{countFor(cwd)}</span>}
+                </button>
+              ))}
+            </Popover>
+          }
         />
       ) : (
         <div className="memory-empty">{t("settings.persona.memory.noProject")}</div>

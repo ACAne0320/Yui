@@ -20,6 +20,7 @@ import type {
   ListMemoryInput,
   ListSessionsInput,
   MemoryEntry,
+  MemoryProject,
   OpenSessionInput,
   OpenSessionResult,
   OAuthLoginFlowInput,
@@ -133,6 +134,7 @@ export interface YuiDesktopApi {
     getSoul(): Promise<SoulDoc>;
     saveSoul(input: SaveSoulInput): Promise<SoulDoc>;
     listMemory(input: ListMemoryInput): Promise<MemoryEntry[]>;
+    listMemoryProjects(): Promise<MemoryProject[]>;
     saveMemory(input: SaveMemoryInput): Promise<MemoryEntry>;
     deleteMemory(input: DeleteMemoryInput): Promise<void>;
   };

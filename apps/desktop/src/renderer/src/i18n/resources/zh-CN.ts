@@ -268,8 +268,8 @@ export const zhCN = {
       memory: {
         toggle: "记忆",
         toggleDescription: "让 Yui 跨会话记住并回忆持久的事实。",
-        globalTitle: "全局 — 偏好与基础事实",
-        projectTitle: "项目 — 当前工作目录",
+        globalTitle: "全局",
+        projectTitle: "项目",
         noProject: "打开一个对话以管理其项目记忆。",
         add: "新增",
         empty: "还没有保存任何记忆。",

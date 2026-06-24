@@ -34,11 +34,26 @@ export function useMemoryEntries(scope: MemoryScope, cwd?: string) {
   });
 }
 
+/** The working directories that have project memory, for the settings switcher. */
+export function useMemoryProjects() {
+  return useQuery({
+    queryKey: queryKeys.memoryProjects,
+    queryFn: () => api.persona.listMemoryProjects(),
+  });
+}
+
+// Saving or deleting can add/empty a project, so refresh the project list (and
+// its per-cwd entry counts) alongside the entries.
+function invalidateMemory(client: ReturnType<typeof useQueryClient>) {
+  void client.invalidateQueries({ queryKey: ["persona", "memory"] });
+  void client.invalidateQueries({ queryKey: queryKeys.memoryProjects });
+}
+
 export function useSaveMemory() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: api.persona.saveMemory,
-    onSuccess: () => client.invalidateQueries({ queryKey: ["persona", "memory"] }),
+    onSuccess: () => invalidateMemory(client),
   });
 }
 
@@ -46,6 +61,6 @@ export function useDeleteMemory() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: api.persona.deleteMemory,
-    onSuccess: () => client.invalidateQueries({ queryKey: ["persona", "memory"] }),
+    onSuccess: () => invalidateMemory(client),
   });
 }

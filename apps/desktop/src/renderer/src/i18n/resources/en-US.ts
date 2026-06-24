@@ -280,8 +280,8 @@ export const enUS = {
       memory: {
         toggle: "Memory",
         toggleDescription: "Let Yui remember and recall durable facts across sessions.",
-        globalTitle: "Global — preferences & base facts",
-        projectTitle: "Project — current working directory",
+        globalTitle: "Global",
+        projectTitle: "Project",
         noProject: "Open a conversation to manage its project memory.",
         add: "Add",
         empty: "No saved memories yet.",

@@ -7,6 +7,7 @@ import {
   type DeleteMemoryInput,
   type ListMemoryInput,
   type MemoryEntry,
+  type MemoryProject,
   type MemoryScope,
   type PersonaConfig,
   personaConfigSchema,
@@ -138,6 +139,35 @@ export class PersonaStore implements PersonaService {
 
   listMemory(input: ListMemoryInput): Promise<MemoryEntry[]> {
     return this.listMemoryEntries(input.scope, input.cwd);
+  }
+
+  /**
+   * Enumerate every project that has memory by scanning `projects/`. Each
+   * project's index records its absolute cwd (the slug is a one-way hash), so a
+   * project whose index predates cwd-stamping is skipped rather than shown with
+   * an unrecoverable path.
+   */
+  async listMemoryProjects(): Promise<MemoryProject[]> {
+    await this.waitForWrites();
+    let slugs: string[];
+    try {
+      slugs = await readdir(this.projectsDir);
+    } catch (error) {
+      if (isNotFound(error)) return [];
+      throw toInternalError("Failed to list memory projects", error);
+    }
+    const projects = await Promise.all(
+      slugs.map(async (slug): Promise<MemoryProject | undefined> => {
+        const index = await readOptional(join(this.projectsDir, slug, "MEMORY.md"));
+        const cwd = index === undefined ? undefined : readIndexCwd(index);
+        if (cwd === undefined) return undefined;
+        const entries = await this.listMemoryEntriesDirect("cwd", cwd);
+        return { cwd, count: entries.length };
+      }),
+    );
+    return projects
+      .filter((project): project is MemoryProject => project !== undefined)
+      .toSorted((a, b) => a.cwd.localeCompare(b.cwd));
   }
 
   saveMemory(input: SaveMemoryInput): Promise<MemoryEntry> {

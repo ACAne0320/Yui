@@ -175,7 +175,10 @@
 }
 
 .ui-popover {
-  z-index: 70;
+  /* Above the settings overlay (90) and its notification card (100) so popovers
+     triggered from inside settings are visible, while staying below true modals
+     (spotlight 120, dialogs 130/200, toasts 140) that should cover them. */
+  z-index: 110;
   /* Shrink-wrap to the content: short menus (thinking levels) stay compact,
      while long rows (model names, working-dir paths) cap at max-width and
      ellipsize. The available-width var keeps it inside the viewport. */

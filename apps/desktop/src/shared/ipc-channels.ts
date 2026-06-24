@@ -38,6 +38,7 @@ export const desktopIpcChannels = {
     getSoul: "persona:get-soul",
     saveSoul: "persona:save-soul",
     listMemory: "persona:list-memory",
+    listMemoryProjects: "persona:list-memory-projects",
     saveMemory: "persona:save-memory",
     deleteMemory: "persona:delete-memory",
   },

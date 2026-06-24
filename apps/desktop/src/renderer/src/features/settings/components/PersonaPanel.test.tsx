@@ -15,6 +15,7 @@ vi.mock("@renderer/data/persona", () => ({
   usePersonaConfig: () => ({ data: { memoryEnabled: true } }),
   useSetPersonaConfig: () => ({ mutate: vi.fn(), isPending: false }),
   useMemoryEntries: () => ({ data: [] }),
+  useMemoryProjects: () => ({ data: [] }),
   useSaveMemory: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useDeleteMemory: () => ({ mutate: vi.fn(), isPending: false }),
 }));
@@ -43,11 +44,11 @@ describe("PersonaPanel", () => {
 
     // Identity is the default tab: the SOUL editor is mounted, memory is not.
     expect(screen.getByLabelText("SOUL")).toBeTruthy();
-    expect(screen.queryByText("Global — preferences & base facts")).toBeNull();
+    expect(screen.queryByText("Global")).toBeNull();
 
     fireEvent.click(screen.getByRole("tab", { name: "Memory" }));
 
-    expect(screen.getByText("Global — preferences & base facts")).toBeTruthy();
+    expect(screen.getByText("Global")).toBeTruthy();
     expect(screen.queryByLabelText("SOUL")).toBeNull();
   });
 });

@@ -11,6 +11,22 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+## [0.0.7] - 2026-06-24
+
+### Added
+- Assistant replies now stream directly into the chat thread, with tool and
+  process details grouped behind an expandable disclosure.
+  ([`3382b29`](https://github.com/ACAne0320/Yui/commit/3382b29845877cbd51ca07fabda9af58a18522ff))
+- Project memory can be browsed by working directory from Settings.
+  ([`52164e3`](https://github.com/ACAne0320/Yui/commit/52164e36fa3ebd2c756fa8fed38dd7f2efca05eb))
+- Existing sessions can be reloaded in place, and the chat composer now offers
+  a slash-command menu for faster session actions.
+  ([`dda3980`](https://github.com/ACAne0320/Yui/commit/dda39803d397e8ad25c61df2820b3b5107ccecc2))
+
+### Fixed
+- Image-only chat sends are rejected before submission.
+  ([`3795a0e`](https://github.com/ACAne0320/Yui/commit/3795a0e45cd0bdb5f3293197dffdee8098df7273))
+
 ## [0.0.6] - 2026-06-23
 
 ### Added

@@ -53,7 +53,12 @@ function MemoryEditorDialog({
         if (event.key === "Escape") onCancel();
       }}
     >
-      <div className="confirm-dialog memory-dialog" role="dialog" aria-modal="true" aria-label={title}>
+      <div
+        className="confirm-dialog memory-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <h3>{title}</h3>
         <textarea
           ref={ref}
@@ -181,7 +186,9 @@ export function MemoryManager({
 
       <MemoryEditorDialog
         open={editing !== null}
-        title={t(editing === "new" ? "settings.persona.memory.add" : "settings.persona.memory.edit")}
+        title={t(
+          editing === "new" ? "settings.persona.memory.add" : "settings.persona.memory.edit",
+        )}
         value={draft}
         error={error}
         pending={save.isPending}

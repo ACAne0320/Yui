@@ -235,7 +235,10 @@ describe("Thread", () => {
       toolCallId: "tool-1",
       toolName: "bash",
     };
-    const settledFinal = { ...message("assistant-2", "assistant", "All done"), stopReason: "stop" };
+    const settledFinal: AppMessage = {
+      ...message("assistant-2", "assistant", "All done"),
+      stopReason: "stop",
+    };
     const props = {
       active: null,
       liveTools: [],

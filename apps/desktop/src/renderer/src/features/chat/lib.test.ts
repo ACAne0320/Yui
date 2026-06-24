@@ -95,7 +95,7 @@ describe("conversation turns", () => {
 });
 
 describe("buildTurnSegments tool arguments", () => {
-  const toolCall = (args: unknown) => ({
+  const toolCall = (args: Record<string, unknown>): AppMessage => ({
     ...message("assistant-1", "assistant" as const),
     content: [{ type: "toolCall" as const, id: "call-1", name: "read", arguments: args }],
   });
@@ -120,16 +120,24 @@ describe("buildTurnSegments tool arguments", () => {
 
   it("shows the command once the arguments are complete", () => {
     // Run no longer live (persisted history) → arguments are final.
-    const fromPersisted = buildTurnSegments([toolCall({ path: "/Users/shino" })], [], false, undefined).find(
-      (segment) => segment.kind === "tool",
-    );
+    const fromPersisted = buildTurnSegments(
+      [toolCall({ path: "/Users/shino" })],
+      [],
+      false,
+      undefined,
+    ).find((segment) => segment.kind === "tool");
     expect(fromPersisted?.kind === "tool" && fromPersisted.args).toEqual({ path: "/Users/shino" });
 
     // Or the moment execution starts with the whole args, even mid-stream.
-    const live = [{ toolCallId: "call-1", name: "read", args: { path: "/Users/shino" }, running: true }];
-    const fromLive = buildTurnSegments([toolCall({ path: "/Users/sh" })], live, true, undefined).find(
-      (segment) => segment.kind === "tool",
-    );
+    const live = [
+      { toolCallId: "call-1", name: "read", args: { path: "/Users/shino" }, running: true },
+    ];
+    const fromLive = buildTurnSegments(
+      [toolCall({ path: "/Users/sh" })],
+      live,
+      true,
+      undefined,
+    ).find((segment) => segment.kind === "tool");
     expect(fromLive?.kind === "tool" && fromLive.args).toEqual({ path: "/Users/shino" });
   });
 });

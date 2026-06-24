@@ -139,7 +139,8 @@ function MemoryTab() {
 
   // Default to the active cwd; an explicit pick overrides until it leaves the list.
   const [picked, setPicked] = useState<string | undefined>(undefined);
-  const selectedCwd = (picked && cwds.includes(picked) ? picked : undefined) ?? activeCwd ?? cwds[0];
+  const selectedCwd =
+    (picked && cwds.includes(picked) ? picked : undefined) ?? activeCwd ?? cwds[0];
   const countFor = (cwd: string) =>
     projects.data?.find((project) => project.cwd === cwd)?.count ?? 0;
 

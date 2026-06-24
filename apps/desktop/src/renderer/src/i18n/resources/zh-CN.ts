@@ -175,6 +175,13 @@ export const zhCN = {
     notices: {
       authorizeModel: "请先在提供商设置中授权一个模型。",
       runFailed: "请求失败，请检查提供商设置或 API key。",
+      reloaded: "已重新加载扩展、技能、提示词与设置。",
+    },
+    slash: {
+      label: "命令",
+      new: { title: "新建对话", description: "开始一个新的对话" },
+      reload: { title: "重新加载", description: "重新加载扩展、技能、提示词与设置" },
+      extensionTag: "扩展",
     },
   },
   settings: {

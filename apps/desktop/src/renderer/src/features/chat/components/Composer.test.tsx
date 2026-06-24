@@ -8,6 +8,7 @@ function props() {
     input: "",
     onInput: vi.fn(),
     onSend: vi.fn(async () => undefined),
+    slashCommands: [],
     attachments: [],
     onAddFiles: vi.fn(),
     onRemoveAttachment: vi.fn(),

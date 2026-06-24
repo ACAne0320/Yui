@@ -271,6 +271,13 @@ export interface AgentService {
   getExtensionUiState(sessionId: string): ExtensionUiSnapshot;
   /** List the extensions loaded for a session, including load errors. */
   getExtensions(sessionId: string): SessionExtensionsInfo;
+  /**
+   * Reload this live session's runtime resources from disk — extensions,
+   * settings, skills, prompts, themes, and context files — without opening a
+   * new session or losing conversation history. Rejects with `session_busy` if
+   * a turn is streaming. Mirrors Pi's `/reload`.
+   */
+  reloadSession(sessionId: string): Promise<void>;
 }
 
 export interface AppRuntime {

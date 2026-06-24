@@ -183,6 +183,13 @@ export const enUS = {
     notices: {
       authorizeModel: "Authorize a model in provider settings first.",
       runFailed: "The request failed. Check the provider settings or API key.",
+      reloaded: "Reloaded extensions, skills, prompts, and settings.",
+    },
+    slash: {
+      label: "Commands",
+      new: { title: "New chat", description: "Start a new conversation" },
+      reload: { title: "Reload", description: "Reload extensions, skills, prompts, and settings" },
+      extensionTag: "Extension",
     },
   },
   settings: {

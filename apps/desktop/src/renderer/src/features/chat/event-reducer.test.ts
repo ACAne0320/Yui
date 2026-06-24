@@ -27,6 +27,7 @@ const base: ChatRealtimeState = {
   pendingUserId: null,
   activity: null,
   extensionUi: emptyExtensionUi(),
+  extensionCommands: [],
   messageStats: {},
   runTiming: {},
 };

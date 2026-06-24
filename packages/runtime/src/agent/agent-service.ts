@@ -157,9 +157,11 @@ export class PiAgentService implements AgentService {
     // Bind extensions as a canonical non-TUI host: dialogs go through the
     // bridge, `hasUI` flips to true, and session_start fires here. (Pi 0.78
     // derives hasUI from the bound uiContext; the `mode` binding only exists
-    // in newer Pi versions.) No commandContextActions: extension slash
-    // commands are listed but not executable yet, so Pi's throwing stubs are
-    // the safe default.
+    // in newer Pi versions.) No commandContextActions: extension slash commands
+    // still run via prompt("/name") — their handlers get a working ui/exec/
+    // modelRegistry context — but Pi's session-control actions (newSession/
+    // fork/navigateTree/switchSession/reload) fall back to benign no-ops until
+    // we map them onto Yui's own session model.
     //
     // Do NOT await this. bindExtensions applies the tool/hook/UI bindings
     // synchronously (before its first await), so gating and the bridge are live
@@ -360,6 +362,24 @@ export class PiAgentService implements AgentService {
       })),
       errors: loaded.errors.map((entry) => ({ path: entry.path, error: entry.error })),
     };
+  }
+
+  async reloadSession(sessionId: string): Promise<void> {
+    const session = this.pool.getSession(sessionId);
+    // reload() rebuilds the extension runtime (swaps the ExtensionRunner,
+    // re-emits session_shutdown/session_start); doing that mid-turn would race
+    // the in-flight run. Make the caller wait until the turn ends.
+    if (session.isStreaming) {
+      throw new AppRuntimeError("session_busy", "Session is streaming; cannot reload now.");
+    }
+    try {
+      // Re-discovers extensions/skills/prompts/themes from disk and re-binds
+      // them to this same session. Existing bindings (the ExtensionUiBridge) are
+      // preserved by Pi, so the session keeps its UI wiring and history.
+      await session.reload();
+    } catch (error) {
+      throw new AppRuntimeError("internal", `Failed to reload session: ${describe(error)}`, error);
+    }
   }
 
   async dispose(): Promise<void> {

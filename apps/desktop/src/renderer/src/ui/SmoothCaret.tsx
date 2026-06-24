@@ -33,12 +33,20 @@ const MIRROR_STYLE_KEYS = [
  */
 export function SmoothCaret({
   textareaRef,
+  value,
 }: {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
+  /**
+   * The textarea's controlled value. Watched so a programmatic change — clearing
+   * the draft after a send or a slash command — recomputes the caret, since such
+   * a change fires no `input` or `selectionchange` event for the listeners below.
+   */
+  value?: string;
 }) {
   const mirrorRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLSpanElement>(null);
   const caretRef = useRef<HTMLDivElement>(null);
+  const scheduleRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -125,6 +133,7 @@ export function SmoothCaret({
     const schedule = () => {
       frame ??= requestAnimationFrame(safeUpdate);
     };
+    scheduleRef.current = schedule;
 
     // selectionchange covers clicks/arrow keys, input covers typing and IME
     // preedit updates; the ResizeObserver catches width changes (window
@@ -148,8 +157,16 @@ export function SmoothCaret({
       textarea.removeEventListener("blur", schedule);
       textarea.removeEventListener("scroll", schedule);
       textarea.style.caretColor = "";
+      scheduleRef.current = () => {};
     };
   }, [textareaRef]);
+
+  // A controlled-value change fires no input/selectionchange event (React sets
+  // the value property directly), so recompute here when it changes — otherwise
+  // the painted caret lingers at its old spot after the draft is cleared.
+  useEffect(() => {
+    scheduleRef.current();
+  }, [value]);
 
   return (
     <div className="smooth-caret-layer" aria-hidden="true">

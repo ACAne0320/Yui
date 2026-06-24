@@ -16,6 +16,7 @@ import { ExtensionWidgets } from "./components/ExtensionWidgets";
 import { Thread } from "./components/Thread";
 import { conversation } from "./conversation";
 import { useAgentEvents } from "./hooks/useAgentEvents";
+import { buildSlashCommands } from "./slash-commands";
 import { useChatStore } from "./store";
 
 // Normalize Windows backslashes so scratch-path detection is separator-agnostic
@@ -32,6 +33,14 @@ export function ChatView() {
   const defaults = defaultsQuery.data ?? {};
   const state = useChatStore();
   const openSettings = useUiStore((value) => value.openSettings);
+
+  // Rebuild when the session's extension commands change or the language does.
+  // react-i18next hands a fresh `t` on language change, so depending on it keeps
+  // the localized titles current.
+  const slashCommands = useMemo(
+    () => buildSlashCommands(state.extensionCommands, t),
+    [state.extensionCommands, t],
+  );
 
   // Scratch workspaces live under `<homeDir>/scratch`; they are represented by
   // the single "使用临时目录" entry, never listed individually as pickable dirs.
@@ -119,6 +128,7 @@ export function ChatView() {
         input={state.input}
         onInput={state.setInput}
         onSend={conversation.send}
+        slashCommands={slashCommands}
         attachments={state.attachments}
         onAddFiles={addFiles}
         onRemoveAttachment={removeAttachment}

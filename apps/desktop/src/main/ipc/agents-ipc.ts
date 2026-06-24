@@ -83,4 +83,9 @@ export function registerAgentsIpc(
     sessionIdInputSchema,
     (_event, input) => runtime.agents.getExtensions(input.sessionId),
   );
+  registrar.handleInput(
+    desktopIpcChannels.agents.reloadSession,
+    sessionIdInputSchema,
+    (_event, input) => runtime.agents.reloadSession(input.sessionId),
+  );
 }

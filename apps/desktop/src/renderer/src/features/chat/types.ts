@@ -1,4 +1,5 @@
 import type { AppMessage, AppModel, ExtensionUiSnapshot, ThinkingLevel } from "@yui/contracts";
+import type { SlashCommand } from "./slash-commands";
 
 export interface ActiveConversation {
   sessionId?: string;
@@ -31,10 +32,25 @@ export interface LiveTool {
   running: boolean;
 }
 
+/**
+ * An extension-provided slash command for the active session, flattened from
+ * `getExtensions`. v1 lists these in the composer's slash menu but cannot run
+ * them — Pi's `commandContextActions` are unwired in the runtime's
+ * `bindExtensions`, so dispatching one would hit a throwing stub.
+ */
+export interface ExtensionSlashCommand {
+  name: string;
+  description?: string;
+  /** Owning extension's source path, for keying and disambiguation. */
+  extensionPath: string;
+}
+
 export interface ComposerProps {
   input: string;
   onInput: (value: string) => void;
   onSend: (override?: string) => Promise<void>;
+  /** App + extension slash commands offered when the input starts with "/". */
+  slashCommands: SlashCommand[];
   attachments: ComposerAttachment[];
   onAddFiles: (files: FileList | File[]) => void;
   onRemoveAttachment: (id: string) => void;
@@ -86,6 +102,12 @@ export interface ChatRealtimeState {
    * `getExtensionUiState` when a thread opens, then updated by events.
    */
   extensionUi: ExtensionUiSnapshot;
+  /**
+   * Extension-provided slash commands for the active session. Seeded alongside
+   * `extensionUi` when a thread opens (and after a reload), so the composer's
+   * slash menu reflects exactly what this session loaded.
+   */
+  extensionCommands: ExtensionSlashCommand[];
   /**
    * Live-measured run durations keyed by the final assistant message id.
    * Reloaded history derives the same value from persisted message timestamps.

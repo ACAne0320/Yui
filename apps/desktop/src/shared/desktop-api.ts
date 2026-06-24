@@ -174,5 +174,6 @@ export interface YuiDesktopApi {
     respondToExtensionUi(input: RespondToExtensionUiInput): Promise<void>;
     getExtensionUiState(input: SessionIdInput): Promise<ExtensionUiSnapshot>;
     getExtensions(input: SessionIdInput): Promise<SessionExtensionsInfo>;
+    reloadSession(input: SessionIdInput): Promise<void>;
   };
 }

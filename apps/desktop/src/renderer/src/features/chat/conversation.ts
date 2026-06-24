@@ -9,6 +9,7 @@ import { useUiStore } from "@renderer/stores/ui-store";
 import { clearAttachments } from "./attachments";
 import {
   seedConversation,
+  updateActiveExtensionCommands,
   updateActiveExtensionUi,
   updateConversationTitle,
   useChatStore,
@@ -35,6 +36,16 @@ async function loadExtensionUi(sessionId: string) {
     if (useChatStore.getState().active?.sessionId !== sessionId) return;
     updateActiveExtensionUi(snapshot);
     const info = await api.agents.getExtensions({ sessionId });
+    // Flatten each extension's commands into the session's slash-menu list.
+    updateActiveExtensionCommands(
+      info.extensions.flatMap((extension) =>
+        extension.commands.map((command) => ({
+          name: command.name,
+          description: command.description,
+          extensionPath: extension.path,
+        })),
+      ),
+    );
     if (info.errors.length > 0) {
       useUiStore.getState().setNotice(
         i18n.t("chat.extensions.loadErrors", {
@@ -192,6 +203,12 @@ async function send(override?: string) {
   // (possibly empty) text block, and providers like OpenAI/Anthropic reject an
   // empty text block outright ("the request is invalid"). Require real text.
   if (!text) return;
+  // A known "/command" executes instead of being sent as a message — runs the
+  // command and clears the draft, with no phantom user bubble.
+  if (text.startsWith("/") && (await maybeRunSlashCommand(text))) {
+    if (override === undefined) useChatStore.setState({ input: "" });
+    return;
+  }
   const isNewSession = !state.active?.sessionId;
   if (isNewSession && creatingSession) return;
   const images = state.attachments.map((attachment) => ({
@@ -319,6 +336,65 @@ async function abort() {
   }
 }
 
+// Reload the active session's runtime resources (extensions, skills, prompts,
+// settings) without opening a new session. Mirrors Pi's `/reload`, so a newly
+// added extension is picked up in place. Rejects with `session_busy` mid-turn.
+async function reloadSession() {
+  const sessionId = useChatStore.getState().active?.sessionId;
+  if (!sessionId) return;
+  try {
+    await api.agents.reloadSession({ sessionId });
+    useUiStore.getState().setNotice(i18n.t("chat.notices.reloaded"));
+    // The reload re-discovers extensions; refresh the renderer's snapshot and
+    // list. loadExtensionUi overrides the notice above if loads now error.
+    await loadExtensionUi(sessionId);
+  } catch (error) {
+    useUiStore.getState().setNotice(formatError(error));
+  }
+}
+
+// Execute an extension slash command (e.g. "/greet args") on the active session.
+// Routed through prompt(), which detects a registered command and runs its
+// handler instead of sending a model turn — so no user message is added and no
+// model is required. UI/tool/exec actions run; Pi session-control actions are
+// currently no-ops.
+async function runSlashCommand(text: string) {
+  const sessionId = useChatStore.getState().active?.sessionId;
+  if (!sessionId) return;
+  try {
+    await api.agents.prompt({ sessionId, text });
+    // A command usually starts no turn; reconcile busy with the runtime (a
+    // command that does start one flips it back via events).
+    useChatStore.setState({ busy: await api.agents.isBusy({ sessionId }).catch(() => false) });
+  } catch (error) {
+    useUiStore.getState().setNotice(formatError(error));
+  }
+}
+
+// If the composer holds a bare "/command" (optionally with args) that matches a
+// known command, run it instead of sending a message (no phantom user bubble).
+// Returns whether it handled the input; unknown "/..." text is left for the
+// normal send path (Pi may still expand it as a skill/template).
+async function maybeRunSlashCommand(text: string): Promise<boolean> {
+  const token = text.slice(1).trim().split(/\s+/)[0];
+  if (!token) return false;
+  // Extension commands run with their full "/cmd args" text (args preserved).
+  if (useChatStore.getState().extensionCommands.some((command) => command.name === token)) {
+    await runSlashCommand(text);
+    return true;
+  }
+  // Built-in app commands (zero-arg). Keep in sync with buildSlashCommands.
+  if (token === "new") {
+    void startNewConversation();
+    return true;
+  }
+  if (token === "reload") {
+    void reloadSession();
+    return true;
+  }
+  return false;
+}
+
 async function browseCwd() {
   // The cwd is fixed once a session exists; only the draft (new conversation)
   // cwd is editable, matching the manual-input field in the composer.
@@ -385,6 +461,8 @@ export const conversation = {
   openDirectory,
   openConversation,
   detachActiveSession,
+  reloadSession,
+  runSlashCommand,
   send,
   startNewConversation,
 };

@@ -47,6 +47,7 @@ const realtimeInitial: ChatRealtimeState = {
   pendingUserId: null,
   activity: null,
   extensionUi: emptyExtensionUi(),
+  extensionCommands: [],
   messageStats: {},
   runTiming: {},
 };
@@ -67,6 +68,7 @@ function visibleRealtime(state: ChatState): ChatRealtimeState {
     pendingUserId: state.pendingUserId,
     activity: state.activity,
     extensionUi: state.extensionUi,
+    extensionCommands: state.extensionCommands,
     messageStats: state.messageStats,
     runTiming: state.runTiming,
   };
@@ -221,6 +223,17 @@ export function updateActiveExtensionUi(snapshot: ChatRealtimeState["extensionUi
     const next = { ...visibleRealtime(state), extensionUi: snapshot };
     return {
       extensionUi: snapshot,
+      ...cacheRealtime(state, next),
+    };
+  });
+}
+
+export function updateActiveExtensionCommands(commands: ChatRealtimeState["extensionCommands"]) {
+  useChatStore.setState((state) => {
+    if (!state.active?.sessionId) return {};
+    const next = { ...visibleRealtime(state), extensionCommands: commands };
+    return {
+      extensionCommands: commands,
       ...cacheRealtime(state, next),
     };
   });

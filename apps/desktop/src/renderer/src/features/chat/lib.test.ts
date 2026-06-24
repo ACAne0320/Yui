@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AppMessage } from "@yui/contracts";
 import {
+  buildTurnSegments,
   conversationTurns,
   finalReply,
   formatDuration,
@@ -90,6 +91,46 @@ describe("conversation turns", () => {
     expect(formatDuration(4_900, t)).toBe("4s");
     expect(formatDuration(61_000, t)).toBe("1m 1s");
     expect(formatDuration(3_661_000, t)).toBe("1h 1m 1s");
+  });
+});
+
+describe("buildTurnSegments tool arguments", () => {
+  const toolCall = (args: unknown) => ({
+    ...message("assistant-1", "assistant" as const),
+    content: [{ type: "toolCall" as const, id: "call-1", name: "read", arguments: args }],
+  });
+
+  it("withholds a tool call's command while its arguments are still streaming", () => {
+    // Live run, no execution, no result — the JSON arguments are partial, so the
+    // command must not be rendered yet.
+    const segments = buildTurnSegments([toolCall({ path: "/Users/shi" })], [], true, undefined);
+    const tool = segments.find((segment) => segment.kind === "tool");
+    expect(tool?.kind === "tool" && tool.args).toBeUndefined();
+  });
+
+  it("still withholds it when the provider sets stopReason mid-stream", () => {
+    // Some providers (e.g. DeepSeek) set stopReason while the call is still
+    // streaming, so stopReason must not be treated as "arguments complete".
+    const early = { ...toolCall({ path: "/Users/shi" }), stopReason: "toolUse" as const };
+    const tool = buildTurnSegments([early], [], true, undefined).find(
+      (segment) => segment.kind === "tool",
+    );
+    expect(tool?.kind === "tool" && tool.args).toBeUndefined();
+  });
+
+  it("shows the command once the arguments are complete", () => {
+    // Run no longer live (persisted history) → arguments are final.
+    const fromPersisted = buildTurnSegments([toolCall({ path: "/Users/shino" })], [], false, undefined).find(
+      (segment) => segment.kind === "tool",
+    );
+    expect(fromPersisted?.kind === "tool" && fromPersisted.args).toEqual({ path: "/Users/shino" });
+
+    // Or the moment execution starts with the whole args, even mid-stream.
+    const live = [{ toolCallId: "call-1", name: "read", args: { path: "/Users/shino" }, running: true }];
+    const fromLive = buildTurnSegments([toolCall({ path: "/Users/sh" })], live, true, undefined).find(
+      (segment) => segment.kind === "tool",
+    );
+    expect(fromLive?.kind === "tool" && fromLive.args).toEqual({ path: "/Users/shino" });
   });
 });
 

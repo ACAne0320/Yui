@@ -124,12 +124,11 @@ export const enUS = {
       minutes: "{{minutes}}m {{seconds}}s",
       hours: "{{hours}}h {{minutes}}m {{seconds}}s",
     },
-    execution: {
-      running: "Running…",
-      runningIn: "Running for {{duration}}",
-      completed: "Run completed",
-      completedIn: "Ran for {{duration}}",
-      intermediateReply: "Intermediate reply",
+    process: {
+      working: "Working…",
+      workingIn: "Working {{duration}}",
+      done: "Worked for {{duration}}",
+      completed: "Done",
     },
     tools: {
       result: "Tool result",

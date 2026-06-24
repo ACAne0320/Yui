@@ -13,6 +13,10 @@ import { ToolCard } from "./ToolCard";
 /** How close to the bottom (px) still counts as "following the stream". */
 const PIN_THRESHOLD_PX = 40;
 
+/** Stable empty tools for settled turns — a fresh `[]` each render would break
+    ConversationTurn's memo and re-parse every turn on every streamed token. */
+const NO_LIVE_TOOLS: LiveTool[] = [];
+
 export function Thread({
   active,
   messages,
@@ -36,7 +40,7 @@ export function Thread({
   workingMessage?: string;
   /** Live-measured run durations; history derives them from persisted timestamps. */
   messageStats?: ChatRealtimeState["messageStats"];
-  /** Exact agent_start time for the active user request. */
+  /** Exact agent_start time for the active user request; drives the live counter. */
   runStartedAt?: number;
   onOpenCwd: () => void;
   composer: ReactNode;
@@ -130,7 +134,7 @@ export function Thread({
                   key={turn.user.id}
                   user={turn.user}
                   messages={turn.messages}
-                  liveTools={activeTurn ? liveTools : []}
+                  liveTools={activeTurn ? liveTools : NO_LIVE_TOOLS}
                   busy={activeTurn && busy}
                   runStartedAt={activeTurn && busy ? runStartedAt : undefined}
                   messageStats={messageStats}

@@ -116,12 +116,11 @@ export const zhCN = {
       minutes: "{{minutes}} 分 {{seconds}} 秒",
       hours: "{{hours}} 小时 {{minutes}} 分 {{seconds}} 秒",
     },
-    execution: {
-      running: "正在运行…",
-      runningIn: "正在运行 {{duration}}",
-      completed: "已运行",
-      completedIn: "已运行 {{duration}}",
-      intermediateReply: "中间回复",
+    process: {
+      working: "正在处理…",
+      workingIn: "正在处理 {{duration}}",
+      done: "已处理 {{duration}}",
+      completed: "已处理",
     },
     tools: {
       result: "工具结果",

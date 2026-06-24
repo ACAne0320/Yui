@@ -15,7 +15,7 @@ function message(id: string, role: AppMessage["role"], text: string): AppMessage
 }
 
 describe("Thread", () => {
-  it("renders each user request with one clean final reply", () => {
+  it("shows only the final reply, folding intermediate prose into the disclosure", () => {
     const { container } = render(
       <Thread
         active={null}
@@ -36,13 +36,18 @@ describe("Thread", () => {
     );
 
     expect(container.querySelectorAll(".assistant-meta")).toHaveLength(0);
-    expect(screen.queryByText("checking")).toBeNull();
     expect(screen.getByText("first answer")).toBeTruthy();
     expect(screen.getByText("answer")).toBeTruthy();
     expect(container.querySelector(".thread-header span")?.textContent).toBe("2 turns");
+
+    // The intermediate reply is tucked inside the collapsed disclosure; expanding
+    // it reveals the same full prose, not a greyed-out thinking note.
+    expect(screen.queryByText("checking")).toBeNull();
+    fireEvent.click(container.querySelector(".process-chain > button") as HTMLElement);
+    expect(screen.getByText("checking")).toBeTruthy();
   });
 
-  it("collapses reasoning and tool calls into the execution chain", () => {
+  it("nests reasoning and tool calls behind two layers of disclosure", () => {
     const assistant: AppMessage = {
       ...message("assistant-1", "assistant", ""),
       stopReason: "toolUse",
@@ -75,18 +80,25 @@ describe("Thread", () => {
       />,
     );
 
-    expect(screen.getByText("Ran for 1m 5s")).toBeTruthy();
+    // Outer layer collapsed: only the final reply and the total-time summary show.
+    expect(screen.getByText("All done")).toBeTruthy();
+    expect(screen.getByText("Worked for 1m 5s")).toBeTruthy();
     expect(container.querySelectorAll(".tool-card")).toHaveLength(0);
+    expect(screen.queryByText("View reasoning")).toBeNull();
+
+    // Expand the outer layer: the tool call and the reasoning's own toggle appear,
+    // but the reasoning text stays behind its inner collapse.
+    fireEvent.click(screen.getByText("Worked for 1m 5s"));
+    expect(container.querySelectorAll(".tool-card")).toHaveLength(1);
+    expect(screen.getByText("View reasoning")).toBeTruthy();
     expect(screen.queryByText("Need to inspect the directory")).toBeNull();
 
-    fireEvent.click(screen.getByText("Ran for 1m 5s"));
-    expect(container.querySelectorAll(".tool-card")).toHaveLength(1);
+    // Expand the inner reasoning layer: the thinking text finally shows.
+    fireEvent.click(screen.getByText("View reasoning"));
     expect(screen.getByText("Need to inspect the directory")).toBeTruthy();
-    expect(screen.queryByText("Reasoning")).toBeNull();
-    expect(screen.getByText("All done")).toBeTruthy();
   });
 
-  it("expands the reasoning and tool stream while the turn is running", () => {
+  it("auto-expands the disclosure while the turn is running", () => {
     const assistant: AppMessage = {
       ...message("assistant-1", "assistant", ""),
       stopReason: "toolUse",
@@ -105,19 +117,52 @@ describe("Thread", () => {
         queue={[]}
         activity={null}
         busy
+        onOpenCwd={vi.fn()}
+        composer={<div />}
+      />,
+    );
+
+    // No click required: the disclosure is open while the model is working.
+    expect(container.querySelector(".process-chain")?.getAttribute("data-open")).toBe("true");
+    expect(container.querySelectorAll(".tool-card")).toHaveLength(1);
+  });
+
+  it("ticks the elapsed time on the disclosure summary while running", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(5_000);
+    const assistant: AppMessage = {
+      ...message("assistant-1", "assistant", ""),
+      stopReason: "toolUse",
+      content: [
+        { type: "thinking", thinking: "Need to inspect the directory" },
+        { type: "toolCall", id: "tool-1", name: "bash", arguments: { command: "pwd" } },
+      ],
+    };
+
+    render(
+      <Thread
+        active={null}
+        messages={[{ ...message("user-1", "user", "run pwd"), timestamp: 1_000 }, assistant]}
+        liveTools={[
+          { toolCallId: "tool-1", name: "bash", args: { command: "pwd" }, running: true },
+        ]}
+        queue={[]}
+        activity={null}
+        busy
         runStartedAt={1_000}
         onOpenCwd={vi.fn()}
         composer={<div />}
       />,
     );
 
-    // No click required: the stream is expanded while the model is working.
-    expect(container.querySelector(".execution-chain")?.getAttribute("data-open")).toBe("true");
-    expect(container.querySelectorAll(".tool-card")).toHaveLength(1);
-    expect(screen.getByText("Need to inspect the directory")).toBeTruthy();
+    expect(screen.getByText("Working 4s")).toBeTruthy();
+    act(() => vi.advanceTimersByTime(1_000));
+    expect(screen.getByText("Working 5s")).toBeTruthy();
+
+    vi.useRealTimers();
   });
 
-  it("streams the final answer inside the chain, then folds and lifts it to the bubble on settle", () => {
+  it("streams the final answer in place in its bubble, folding the disclosure on settle", () => {
     const assistant: AppMessage = {
       ...message("assistant-1", "assistant", ""),
       stopReason: "toolUse",
@@ -133,9 +178,64 @@ describe("Thread", () => {
     };
     const user = { ...message("user-1", "user", "run pwd"), timestamp: 1_000 };
     // The final reply has begun streaming: text present, no tool call, no
-    // stopReason yet. Until it settles it streams inside the open chain (so a
-    // pre-tool-call preamble could never flash into the bubble first).
+    // stopReason yet — it streams in its own bubble (so the typing animation
+    // plays in place), while the disclosure above shows the reasoning + tools.
     const streamingFinal = message("assistant-2", "assistant", "Here is the answer");
+    const props = {
+      active: null,
+      liveTools: [],
+      queue: [],
+      activity: null,
+      onOpenCwd: vi.fn(),
+      composer: <div />,
+    };
+    const { container, rerender } = render(
+      <Thread {...props} messages={[user, assistant, toolResult, streamingFinal]} busy />,
+    );
+
+    // Streaming: the answer is in its bubble (not inside the disclosure) with a
+    // live caret and per-word fade-in spans; the disclosure stays open showing
+    // the prior reasoning/tools.
+    expect(container.querySelector(".process-chain")?.getAttribute("data-open")).toBe("true");
+    expect(container.querySelector(".process-details .assistant-body")).toBeNull();
+    expect(container.querySelector(".assistant-body")?.textContent).toContain("Here is the answer");
+    expect(container.querySelector(".caret")).not.toBeNull();
+    // The typing animation is on while it streams (gated on the live run, not on
+    // a settled stopReason — providers set stopReason mid-stream).
+    expect(container.querySelectorAll(".assistant-body .stream-word").length).toBeGreaterThan(0);
+
+    // Run ends: the disclosure folds, the answer stays put, and the caret /
+    // animation clear.
+    rerender(
+      <Thread
+        {...props}
+        messages={[user, assistant, toolResult, { ...streamingFinal, stopReason: "stop" }]}
+        busy={false}
+        messageStats={{ "assistant-2": { runMs: 3_000 } }}
+      />,
+    );
+    expect(container.querySelector(".process-chain")?.getAttribute("data-open")).toBe("false");
+    expect(container.querySelector(".process-details")).toBeNull();
+    expect(container.querySelector(".assistant-body")?.textContent).toBe("Here is the answer");
+    expect(container.querySelector(".caret")).toBeNull();
+    expect(container.querySelectorAll(".assistant-body .stream-word")).toHaveLength(0);
+  });
+
+  it("keeps the summary counting after the reply settles, then shows the final time", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(5_000);
+    const user = { ...message("user-1", "user", "run pwd"), timestamp: 1_000 };
+    const assistant: AppMessage = {
+      ...message("assistant-1", "assistant", ""),
+      stopReason: "toolUse",
+      content: [{ type: "toolCall", id: "tool-1", name: "bash", arguments: { command: "pwd" } }],
+    };
+    const toolResult: AppMessage = {
+      ...message("result-1", "toolResult", "done"),
+      toolCallId: "tool-1",
+      toolName: "bash",
+    };
+    const settledFinal = { ...message("assistant-2", "assistant", "All done"), stopReason: "stop" };
     const props = {
       active: null,
       liveTools: [],
@@ -145,29 +245,27 @@ describe("Thread", () => {
       onOpenCwd: vi.fn(),
       composer: <div />,
     };
+
+    // Reply has settled but the run has not ended yet: the disclosure folds, but
+    // the summary keeps ticking instead of blanking the time (runMs isn't ready).
     const { container, rerender } = render(
-      <Thread {...props} messages={[user, assistant, toolResult, streamingFinal]} busy />,
+      <Thread {...props} messages={[user, assistant, toolResult, settledFinal]} busy />,
     );
+    expect(container.querySelector(".process-chain")?.getAttribute("data-open")).toBe("false");
+    expect(screen.getByText("Working 4s")).toBeTruthy();
 
-    // Streaming: chain stays open, reply renders in it without the "Intermediate
-    // reply" label, and the answer bubble has not appeared yet.
-    expect(container.querySelector(".execution-chain")?.getAttribute("data-open")).toBe("true");
-    expect(container.querySelector(".assistant-body")).toBeNull();
-    const live = container.querySelector(".execution-intermediate");
-    expect(live?.querySelector("strong")).toBeNull();
-    expect(live?.textContent).toContain("Here is the answer");
-
-    // Settling its stopReason (still busy) folds the chain and lifts the reply
-    // into the bubble — the relocation happens once, when it is truly final.
+    // Run ends: the summary switches to the final measured duration.
     rerender(
       <Thread
         {...props}
-        messages={[user, assistant, toolResult, { ...streamingFinal, stopReason: "stop" }]}
-        busy
+        messages={[user, assistant, toolResult, settledFinal]}
+        busy={false}
+        messageStats={{ "assistant-2": { runMs: 7_000 } }}
       />,
     );
-    expect(container.querySelector(".execution-chain")?.getAttribute("data-open")).toBe("false");
-    expect(container.querySelector(".assistant-body")?.textContent).toBe("Here is the answer");
+    expect(screen.getByText("Worked for 7s")).toBeTruthy();
+
+    vi.useRealTimers();
   });
 
   it("shows a button to jump back to the latest message after scrolling up", () => {
@@ -198,30 +296,5 @@ describe("Thread", () => {
 
     expect(scrollTo).toHaveBeenCalledWith({ top: 1_000, behavior: "smooth" });
     expect(screen.queryByRole("button", { name: "Jump to latest message" })).toBeNull();
-  });
-
-  it("updates the elapsed duration while the active request is running", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(5_000);
-
-    render(
-      <Thread
-        active={null}
-        messages={[{ ...message("user-1", "user", "work"), timestamp: 1_000 }]}
-        liveTools={[]}
-        queue={[]}
-        activity={null}
-        busy
-        runStartedAt={1_000}
-        onOpenCwd={vi.fn()}
-        composer={<div />}
-      />,
-    );
-
-    expect(screen.getByText("Running for 4s")).toBeTruthy();
-    act(() => vi.advanceTimersByTime(1_000));
-    expect(screen.getByText("Running for 5s")).toBeTruthy();
-
-    vi.useRealTimers();
   });
 });

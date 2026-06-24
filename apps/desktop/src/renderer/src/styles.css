@@ -1136,13 +1136,18 @@ button:disabled {
   line-height: 1.65;
   white-space: pre-wrap;
 }
-.execution-chain {
+/* Outer disclosure: the whole turn's reasoning + tool calls + intermediate
+   prose, summarized by total processing time. Collapsed by default once the run
+   settles, leaving only the final answer below; expand to replay the run, where
+   each tool call and thinking block keeps its own inner toggle. */
+.process-chain {
   color: var(--subtle);
 }
-.execution-chain > button {
+.process-chain > button {
   display: flex;
   align-items: center;
   gap: 7px;
+  width: 100%;
   padding: 3px 0;
   border: 0;
   background: transparent;
@@ -1150,78 +1155,49 @@ button:disabled {
   font-size: 11.5px;
   text-align: left;
 }
-.execution-chain > button:hover {
+.process-chain > button:hover {
   color: var(--subtle);
 }
-.execution-chain > button > svg:last-child {
-  transition: transform 0.15s ease;
-}
-.execution-chain[data-open="true"] > button > svg:last-child {
-  transform: rotate(180deg);
-}
-.execution-status {
+.process-status {
+  flex: none;
   display: grid;
   place-items: center;
   width: 15px;
   color: var(--mint-deep);
 }
-.execution-status .spinner {
+.process-status .spinner {
   width: 12px;
   height: 12px;
   border-width: 1.5px;
 }
-/* Reveal wrapper: the active turn keeps this mounted while running, so the
-   thinking/tool stream can animate its height (grid 0fr↔1fr) closed when the
-   final answer starts and open again if the model returns to work. The top gap
-   rides on the wrapper so a collapsed turn folds to zero height. */
-.execution-reveal {
-  display: grid;
-  grid-template-rows: 0fr;
-  margin-top: 0;
-  opacity: 0;
-  transition:
-    grid-template-rows 0.26s ease,
-    margin-top 0.26s ease,
-    opacity 0.2s ease;
+.process-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.execution-chain[data-open="true"] .execution-reveal {
-  grid-template-rows: 1fr;
-  margin-top: 8px;
-  opacity: 1;
+.process-chain > button > svg:last-child {
+  flex: none;
+  transition: transform 0.15s ease;
 }
-.execution-details {
+.process-chain[data-open="true"] > button > svg:last-child {
+  transform: rotate(180deg);
+}
+.process-reveal {
+  margin-top: 10px;
+}
+.process-details {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  padding: 4px 0 3px 14px;
+  gap: 12px;
+  padding: 2px 0 2px 14px;
   border-left: 2px solid var(--border);
-  overflow: hidden;
-  min-height: 0;
 }
-.execution-details .tool-card {
+.process-details .tool-card,
+.process-details .reasoning,
+.process-details .assistant-message {
   margin: 0;
-}
-.execution-reasoning,
-.execution-intermediate {
-  color: var(--subtle);
-  font-size: 12px;
-  line-height: 1.65;
-}
-.execution-intermediate > strong {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-  color: var(--tertiary);
-  font-size: 10.5px;
-  font-weight: 600;
-}
-.execution-reasoning > div {
-  white-space: pre-wrap;
-}
-.execution-intermediate .markdown {
-  color: var(--subtle);
-  font-size: 12px;
 }
 /* Tool activity: a soft rounded bar in the conversation flow — circled status
    icon, bold tool name, gray mono args preview; expandable to the result. */
@@ -1512,7 +1488,7 @@ button:disabled {
    once per DOM node, so streaming re-renders of the same element never
    re-trigger them. prefers-reduced-motion disables everything globally. */
 .assistant-message,
-.execution-chain,
+.process-chain,
 .tool-card,
 .subagent-task-card,
 .queue-card,
@@ -1546,9 +1522,17 @@ button:disabled {
 }
 .tool-card-markdown,
 .reasoning > div,
-.execution-details,
+.process-details,
 .subagent-steps {
   animation: fade-down 0.18s ease-out;
+}
+/* Prose shown as the live answer bubble is relocated into the process disclosure
+   the instant a tool call streams into its message (it stops being the trailing
+   answer). That move remounts the bubble, which would replay `pop` and blink the
+   already-read text on every text→tool handoff. The text is not new here, so it
+   gets no entrance — only genuinely new disclosure items (tool cards) still pop. */
+.process-details .assistant-message {
+  animation: none;
 }
 
 /* Streaming indicator: typing dots + shimmering label. */
@@ -1586,10 +1570,21 @@ button:disabled {
   }
 }
 
-/* Streaming text: newly appended words materialize transparent → solid.
-   Spans are keyed by position, so words already shown never re-animate. */
+/* Streaming text: each newly appended word fades transparent → solid where it
+   arrives. Pi delivers tokens in bursts, so a clump of words mounts in one
+   frame; the per-word `--word-delay` (set in Markdown.tsx) cascades them
+   left-to-right so the burst reveals smoothly instead of popping as one step.
+   `both` holds each word transparent through its delay and solid afterwards. */
 .stream-word {
-  animation: word-in 0.35s ease-out both;
+  animation: word-in 0.32s ease-out both;
+  animation-delay: var(--word-delay, 0ms);
+}
+/* Once a word has finished fading it is marked settled and drops the entrance,
+   so a markdown re-parse that remounts the span (bold/list/heading completing
+   reparents its text) brings it back solid instead of replaying the fade and
+   blinking already-read text. */
+.stream-word.stream-settled {
+  animation: none;
 }
 @keyframes word-in {
   from {

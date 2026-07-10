@@ -343,6 +343,7 @@ export const zhCN = {
       noTools: "没有注册工具。",
       commands: "注册的命令",
       noCommands: "没有注册命令。",
+      noRegistrations: "没有注册工具或命令。",
       enable: "启用",
       disable: "停用",
       delete: "删除",

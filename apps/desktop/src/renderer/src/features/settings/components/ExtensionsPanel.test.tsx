@@ -87,6 +87,14 @@ describe("ExtensionsPanel", () => {
     expect(screen.getAllByText("Load failed").length).toBeGreaterThan(0);
   });
 
+  it("collapses empty tool and command sections into one state", () => {
+    render(<ExtensionsPanel />);
+    fireEvent.click(screen.getByText("~/elsewhere/ext.ts"));
+    expect(screen.getByText("No tools or commands registered.")).toBeTruthy();
+    expect(screen.queryByText("Registered tools")).toBeNull();
+    expect(screen.queryByText("Registered commands")).toBeNull();
+  });
+
   it("toggles enablement for directory entries only", () => {
     render(<ExtensionsPanel />);
     // hooks.ts is the default selection.

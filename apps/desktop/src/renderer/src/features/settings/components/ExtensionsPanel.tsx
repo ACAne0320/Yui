@@ -71,7 +71,7 @@ export function ExtensionsPanel() {
 
   return (
     <div className="provider-layout">
-      <div className="provider-list scroll">
+      <div className="provider-list extension-source-list scroll">
         <div className="subagent-toolbar">
           <button
             className="outline-button"
@@ -207,9 +207,11 @@ function ExtensionDetail({
               ? t("settings.extensions.kindSettingsPath")
               : entry.kind === "directory"
                 ? t("settings.extensions.kindPackage")
-                : t("settings.extensions.kindFile")}{" "}
-            · <code>{entry.path}</code>
+                : t("settings.extensions.kindFile")}
           </p>
+          <code className="extension-path" title={entry.path}>
+            {entry.path}
+          </code>
         </div>
         <span className={`status-pill ${statusKey === "enabled" ? "ready" : "missing"}`}>
           {t(`settings.extensions.${statusKey}`)}
@@ -223,7 +225,13 @@ function ExtensionDetail({
         </div>
       )}
 
-      {entry.enabled && !entry.error && (
+      {entry.enabled && !entry.error && entry.tools.length === 0 && entry.commands.length === 0 && (
+        <div className="settings-section">
+          <div className="field-hint">{t("settings.extensions.noRegistrations")}</div>
+        </div>
+      )}
+
+      {entry.enabled && !entry.error && (entry.tools.length > 0 || entry.commands.length > 0) && (
         <>
           <div className="settings-section">
             <label>{t("settings.extensions.tools")}</label>

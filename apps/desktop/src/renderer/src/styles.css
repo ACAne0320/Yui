@@ -1556,18 +1556,7 @@ button:disabled {
   animation-delay: 0.3s;
 }
 .shimmer-text {
-  background: linear-gradient(90deg, var(--subtle) 38%, var(--mint-ink) 50%, var(--subtle) 62%);
-  background-size: 220% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 2.4s linear infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .shimmer-text {
-    background: none;
-    color: var(--subtle);
-  }
+  color: var(--subtle);
 }
 
 /* Streaming text: each newly appended word fades transparent → solid where it
@@ -1789,6 +1778,12 @@ button:disabled {
   border-radius: 2px;
   background: var(--mint-hover);
 }
+.extension-source-list > button[data-active="true"]::before {
+  display: none;
+}
+.extension-source-list > button + p {
+  padding-top: 20px;
+}
 .provider-logo {
   flex: none;
   display: grid;
@@ -1826,7 +1821,6 @@ button:disabled {
 }
 .provider-list i[data-on="true"] {
   background: var(--mint);
-  box-shadow: 0 0 0 3px var(--mint-soft);
 }
 .provider-list-empty {
   margin: 0;
@@ -2552,7 +2546,7 @@ button.mini-toggle:disabled {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--raised);
-  box-shadow: 0 18px 50px rgb(37 33 29 / 18%);
+  box-shadow: var(--shadow-modal);
   animation: pop 0.16s ease-out;
 }
 .confirm-dialog h3 {
@@ -2621,7 +2615,7 @@ button.mini-toggle:disabled {
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--raised);
-  box-shadow: 0 18px 50px rgb(37 33 29 / 18%);
+  box-shadow: var(--shadow-modal);
   animation: pop 0.16s ease-out;
 }
 .update-head {
@@ -2707,8 +2701,17 @@ button.mini-toggle:disabled {
 }
 
 /* --- Extensions settings panel ------------------------------------------- */
-.extension-detail .provider-head code {
-  word-break: break-all;
+.extension-detail .provider-head .extension-path {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-top: 2px;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: normal;
+  text-overflow: ellipsis;
+  word-break: normal;
+  white-space: nowrap;
   font: 11px var(--mono);
   color: var(--tertiary);
 }
@@ -2876,7 +2879,7 @@ button.mini-toggle:disabled {
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--raised);
-  box-shadow: 0 24px 64px -16px rgba(37, 33, 29, 0.45);
+  box-shadow: var(--shadow-modal);
   animation: pop 0.18s ease both;
 }
 .spotlight-input {
@@ -2968,7 +2971,7 @@ button.mini-toggle:disabled {
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--raised);
-  box-shadow: 0 24px 64px -16px rgba(37, 33, 29, 0.45);
+  box-shadow: var(--shadow-pop);
   animation: pop 0.18s ease both;
 }
 .slash-menu-list {
@@ -3101,7 +3104,7 @@ button.mini-toggle:disabled {
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--raised);
-  box-shadow: 0 24px 64px -16px rgba(37, 33, 29, 0.45);
+  box-shadow: var(--shadow-modal);
   animation: pop 0.18s ease both;
 }
 .extension-dialog-eyebrow {
@@ -3238,14 +3241,6 @@ button.mini-toggle:disabled {
   30% {
     transform: translateY(-3px);
     opacity: 1;
-  }
-}
-@keyframes shimmer {
-  from {
-    background-position: 130% 0;
-  }
-  to {
-    background-position: -130% 0;
   }
 }
 @keyframes check-pop {

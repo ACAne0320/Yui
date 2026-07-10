@@ -357,6 +357,7 @@ export const enUS = {
       noTools: "No tools registered.",
       commands: "Registered commands",
       noCommands: "No commands registered.",
+      noRegistrations: "No tools or commands registered.",
       enable: "Enable",
       disable: "Disable",
       delete: "Delete",

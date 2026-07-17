@@ -924,10 +924,12 @@ button:disabled {
 .markdown {
   white-space: normal;
 }
-.markdown > :first-child {
+/* Streamdown renders each markdown block as a <section> inside its root div;
+   trim the outer edges through that wrapper like the old flat structure did. */
+.markdown > div > :first-child > :first-child {
   margin-top: 0;
 }
-.markdown > :last-child {
+.markdown > div > :last-child > :last-child {
   margin-bottom: 0;
 }
 .markdown p {
@@ -1660,26 +1662,18 @@ button:disabled {
   color: var(--subtle);
 }
 
-/* Streaming text: each newly appended word fades transparent → solid where it
-   arrives. Pi delivers tokens in bursts, so a clump of words mounts in one
-   frame; the per-word `--word-delay` (set in Markdown.tsx) cascades them
-   left-to-right so the burst reveals smoothly instead of popping as one step.
-   `both` holds each word transparent through its delay and solid afterwards. */
-.stream-word {
-  animation: word-in 0.32s ease-out both;
-  animation-delay: var(--word-delay, 0ms);
-}
-/* Once a word has finished fading it is marked settled and drops the entrance,
-   so a markdown re-parse that remounts the span (bold/list/heading completing
-   reparents its text) brings it back solid instead of replaying the fade and
-   blinking already-read text. */
-.stream-word.stream-settled {
-  animation: none;
-}
-@keyframes word-in {
-  from {
-    opacity: 0;
-  }
+/* Streaming text entrance lives in streamdown/styles.css ([data-sd-animate],
+   sd-fadeIn) — imported by ui/Markdown.tsx. */
+
+/* Quiet the UA focus ring (system-accent colored, reads as a warning) on the
+   process-chain buttons with a deliberate, subdued one. */
+.process-chain > button:focus-visible,
+.reasoning > button:focus-visible,
+.tool-group > button:focus-visible,
+.tool-card > button:focus-visible {
+  outline: 1px solid var(--border-firm);
+  outline-offset: 1px;
+  border-radius: 4px;
 }
 
 /* Composer smooth caret: painted caret glides between positions; the native

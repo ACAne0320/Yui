@@ -202,7 +202,7 @@ describe("Thread", () => {
     );
 
     // Streaming: the answer is in its bubble (not inside the disclosure) with a
-    // live caret and per-word fade-in spans; the disclosure stays open showing
+    // live caret and per-character fade-in spans; the disclosure stays open showing
     // the prior reasoning/tools.
     expect(container.querySelector(".process-chain")?.getAttribute("data-open")).toBe("true");
     expect(container.querySelector(".process-details .assistant-body")).toBeNull();
@@ -210,7 +210,9 @@ describe("Thread", () => {
     expect(container.querySelector(".caret")).not.toBeNull();
     // The typing animation is on while it streams (gated on the live run, not on
     // a settled stopReason — providers set stopReason mid-stream).
-    expect(container.querySelectorAll(".assistant-body .stream-word").length).toBeGreaterThan(0);
+    expect(container.querySelectorAll(".assistant-body [data-sd-animate]").length).toBeGreaterThan(
+      0,
+    );
 
     // Run ends: the disclosure folds, the answer stays put, and the caret /
     // animation clear.
@@ -226,7 +228,7 @@ describe("Thread", () => {
     expect(container.querySelector(".process-details")).toBeNull();
     expect(container.querySelector(".assistant-body")?.textContent).toBe("Here is the answer");
     expect(container.querySelector(".caret")).toBeNull();
-    expect(container.querySelectorAll(".assistant-body .stream-word")).toHaveLength(0);
+    expect(container.querySelectorAll(".assistant-body [data-sd-animate]")).toHaveLength(0);
   });
 
   it("keeps the summary counting after the reply settles, then shows the final time", () => {

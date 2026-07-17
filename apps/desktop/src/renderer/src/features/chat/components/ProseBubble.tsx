@@ -2,22 +2,24 @@ import { CopyButton } from "@renderer/ui/CopyButton";
 import { Markdown } from "@renderer/ui/Markdown";
 
 /**
- * Assistant prose rendered as a full-color bubble. Intermediate replies (text
- * emitted before a tool call) and the final answer share this component, so a
- * mid-loop message reads the same as the conclusion instead of being demoted
- * into the collapsed process stream.
+ * Assistant prose. The final answer uses the default full-color presentation;
+ * intermediate narration inside the process disclosure uses `tone="quiet"` —
+ * smaller, muted, no bubble chrome — so a mid-loop note reads as a step in the
+ * run rather than competing with the answer.
  */
 export function ProseBubble({
   text,
   streaming,
   showCopy,
+  tone = "default",
 }: {
   text: string;
   streaming: boolean;
   showCopy: boolean;
+  tone?: "default" | "quiet";
 }) {
   return (
-    <article className="assistant-message">
+    <article className="assistant-message" data-tone={tone}>
       <div className="assistant-body">
         <Markdown animated={streaming}>{text}</Markdown>
         {streaming && <span className="caret" />}

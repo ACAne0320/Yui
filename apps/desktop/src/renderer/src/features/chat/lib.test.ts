@@ -5,9 +5,12 @@ import {
   conversationTurns,
   finalReply,
   formatDuration,
+  groupToolSegments,
   runDurationMs,
   sessionGroup,
   TEMP_GROUP_KEY,
+  type ToolSegment,
+  type TurnSegment,
 } from "./lib";
 
 function message(id: string, role: AppMessage["role"]): AppMessage {
@@ -139,6 +142,72 @@ describe("buildTurnSegments tool arguments", () => {
       undefined,
     ).find((segment) => segment.kind === "tool");
     expect(fromLive?.kind === "tool" && fromLive.args).toEqual({ path: "/Users/shino" });
+  });
+});
+
+describe("groupToolSegments", () => {
+  const tool = (id: string, name = "bash"): ToolSegment => ({
+    kind: "tool",
+    id,
+    name,
+    detail: undefined,
+    running: false,
+  });
+
+  it("folds consecutive plain tool calls into one group keyed by the first call", () => {
+    expect(groupToolSegments([tool("a"), tool("b"), tool("c")])).toEqual([
+      { kind: "toolGroup", id: "a", tools: [tool("a"), tool("b"), tool("c")] },
+    ]);
+  });
+
+  it("breaks a run around prose, reasoning, and message segments", () => {
+    const prose: TurnSegment = { kind: "prose", id: "p", text: "note", live: false };
+    const reasoning: TurnSegment = { kind: "reasoning", id: "r", text: "hmm" };
+    const segments = groupToolSegments([
+      tool("a"),
+      tool("b"),
+      prose,
+      tool("c"),
+      reasoning,
+      tool("d"),
+      tool("e"),
+    ]);
+    expect(segments.map((segment) => segment.kind)).toEqual([
+      "toolGroup",
+      "prose",
+      "tool",
+      "reasoning",
+      "toolGroup",
+    ]);
+    const last = segments.at(-1);
+    expect(last?.kind === "toolGroup" && last.tools.map((item) => item.id)).toEqual(["d", "e"]);
+  });
+
+  it("keeps a lone tool call standalone", () => {
+    expect(groupToolSegments([tool("a")])).toEqual([tool("a")]);
+  });
+
+  it("keeps richly-rendered tools standalone and breaks runs around them", () => {
+    const segments = groupToolSegments([
+      tool("a"),
+      tool("b"),
+      tool("s", "subagent"),
+      tool("c"),
+      tool("d"),
+      tool("m", "remember"),
+    ]);
+    expect(segments.map((segment) => segment.kind)).toEqual([
+      "toolGroup",
+      "tool",
+      "toolGroup",
+      "tool",
+    ]);
+    expect(segments[1]?.kind === "tool" && segments[1].id).toBe("s");
+    expect(segments[3]?.kind === "tool" && segments[3].id).toBe("m");
+  });
+
+  it("returns an empty list for empty input", () => {
+    expect(groupToolSegments([])).toEqual([]);
   });
 });
 

@@ -140,6 +140,10 @@ export const enUS = {
       subagentTasks_other: "{{count}} tasks",
       toolUses_one: "{{count}} tool call",
       toolUses_other: "{{count}} tool calls",
+      groupCommands_one: "Ran {{count}} command",
+      groupCommands_other: "Ran {{count}} commands",
+      groupTools_one: "Used {{count}} tool",
+      groupTools_other: "Used {{count}} tools",
       status: {
         pending: "Pending",
         running: "Running",

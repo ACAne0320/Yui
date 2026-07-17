@@ -132,6 +132,10 @@ export const zhCN = {
       subagentTasks_other: "{{count}} 个任务",
       toolUses_one: "{{count}} 次工具调用",
       toolUses_other: "{{count}} 次工具调用",
+      groupCommands_one: "运行了 {{count}} 条命令",
+      groupCommands_other: "运行了 {{count}} 条命令",
+      groupTools_one: "使用了 {{count}} 个工具",
+      groupTools_other: "使用了 {{count}} 个工具",
       status: {
         pending: "等待中",
         running: "执行中",

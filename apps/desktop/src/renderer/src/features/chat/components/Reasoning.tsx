@@ -8,7 +8,13 @@ export function Reasoning({ text, streaming }: { text: string; streaming: boolea
   useEffect(() => {
     if (streaming) setOpen(true);
   }, [streaming]);
-  const label = streaming ? t("chat.thinking.active") : t("chat.thinking.view");
+  // The settled label is the thinking's own first line — a real gist of each
+  // block instead of the same generic "View reasoning" repeated down the chain.
+  const firstLine = text
+    .split("\n")
+    .find((line) => line.trim() !== "")
+    ?.trim();
+  const label = streaming ? t("chat.thinking.active") : (firstLine ?? t("chat.thinking.view"));
   return (
     <div className="reasoning" data-open={open}>
       <button onClick={() => !streaming && setOpen((value) => !value)}>

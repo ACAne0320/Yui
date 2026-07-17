@@ -41,10 +41,13 @@ describe("Thread", () => {
     expect(container.querySelector(".thread-header span")?.textContent).toBe("2 turns");
 
     // The intermediate reply is tucked inside the collapsed disclosure; expanding
-    // it reveals the same full prose, not a greyed-out thinking note.
+    // it reveals the prose in the quiet narration tone, demoted from answer styling.
     expect(screen.queryByText("checking")).toBeNull();
     fireEvent.click(container.querySelector(".process-chain > button") as HTMLElement);
     expect(screen.getByText("checking")).toBeTruthy();
+    expect(
+      container.querySelector(".process-details .assistant-message")?.getAttribute("data-tone"),
+    ).toBe("quiet");
   });
 
   it("nests reasoning and tool calls behind two layers of disclosure", () => {
@@ -52,7 +55,10 @@ describe("Thread", () => {
       ...message("assistant-1", "assistant", ""),
       stopReason: "toolUse",
       content: [
-        { type: "thinking", thinking: "Need to inspect the directory" },
+        {
+          type: "thinking",
+          thinking: "Need to inspect the directory\nThen run ls to confirm",
+        },
         { type: "toolCall", id: "tool-1", name: "bash", arguments: { command: "pwd" } },
       ],
     };
@@ -84,18 +90,20 @@ describe("Thread", () => {
     expect(screen.getByText("All done")).toBeTruthy();
     expect(screen.getByText("Worked for 1m 5s")).toBeTruthy();
     expect(container.querySelectorAll(".tool-card")).toHaveLength(0);
-    expect(screen.queryByText("View reasoning")).toBeNull();
-
-    // Expand the outer layer: the tool call and the reasoning's own toggle appear,
-    // but the reasoning text stays behind its inner collapse.
-    fireEvent.click(screen.getByText("Worked for 1m 5s"));
-    expect(container.querySelectorAll(".tool-card")).toHaveLength(1);
-    expect(screen.getByText("View reasoning")).toBeTruthy();
     expect(screen.queryByText("Need to inspect the directory")).toBeNull();
 
-    // Expand the inner reasoning layer: the thinking text finally shows.
-    fireEvent.click(screen.getByText("View reasoning"));
+    // Expand the outer layer: the tool call and the reasoning's gist row (its own
+    // first line) appear, but the rest of the thinking stays behind the toggle.
+    fireEvent.click(screen.getByText("Worked for 1m 5s"));
+    expect(container.querySelectorAll(".tool-card")).toHaveLength(1);
     expect(screen.getByText("Need to inspect the directory")).toBeTruthy();
+    expect(screen.queryByText(/Then run ls/)).toBeNull();
+
+    // Expand the inner reasoning layer: the full thinking text finally shows.
+    fireEvent.click(screen.getByText("Need to inspect the directory"));
+    expect(container.querySelector(".reasoning > div")?.textContent).toContain(
+      "Then run ls to confirm",
+    );
   });
 
   it("auto-expands the disclosure while the turn is running", () => {

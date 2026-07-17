@@ -1,6 +1,12 @@
 import { memo } from "react";
 import type { AppMessage } from "@yui/contracts";
-import { buildTurnSegments, finalReply, runDurationMs, textFromMessage } from "../lib";
+import {
+  buildTurnSegments,
+  finalReply,
+  groupToolSegments,
+  runDurationMs,
+  textFromMessage,
+} from "../lib";
 import type { ChatRealtimeState, LiveTool } from "../types";
 import { Message } from "./Message";
 import { ProcessDisclosure } from "./ProcessDisclosure";
@@ -64,7 +70,9 @@ export const ConversationTurn = memo(function ConversationTurn({
   // The disclosure still folds once the reply settles (Codex-style): thinking
   // stays expanded while working, collapses when the answer arrives.
   const settled = reply !== undefined && reply.stopReason !== undefined;
-  const segments = buildTurnSegments(messages, liveTools, busy, reply?.id);
+  // Fold runs of consecutive tool calls into single collapsible rows so a busy
+  // loop reads as quiet steps instead of a wall of cards (Codex-style).
+  const segments = groupToolSegments(buildTurnSegments(messages, liveTools, busy, reply?.id));
   const durationMs = runDurationMs(user, reply, reply ? messageStats[reply.id]?.runMs : undefined);
 
   return (

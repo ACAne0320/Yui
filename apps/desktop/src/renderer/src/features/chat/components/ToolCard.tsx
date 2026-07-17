@@ -48,7 +48,7 @@ function oneLine(value: unknown, fromEnd: boolean): string {
  * Returns "" when nothing readable is found, letting the caller fall back to the
  * result preview (e.g. orphan tool results that carry no captured arguments).
  */
-function argSummary(args: unknown): string {
+export function argSummary(args: unknown): string {
   if (typeof args === "string") return oneLine(args, false);
   if (typeof args !== "object" || args === null) return "";
   const record = args as Record<string, unknown>;

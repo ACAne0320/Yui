@@ -1117,11 +1117,24 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 7px;
+  width: 100%;
   padding: 3px 0 3px 11px;
   border: 0;
   background: transparent;
   color: var(--subtle);
   font-size: 11.5px;
+  text-align: left;
+}
+/* The gist label truncates to one line; the chevron stays next to it. */
+.reasoning > button > span {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reasoning > button > svg:last-child {
+  flex: none;
 }
 .reasoning > button svg {
   color: var(--mint);
@@ -1138,8 +1151,8 @@ button:disabled {
 }
 /* Outer disclosure: the whole turn's reasoning + tool calls + intermediate
    prose, summarized by total processing time. Collapsed by default once the run
-   settles, leaving only the final answer below; expand to replay the run, where
-   each tool call and thinking block keeps its own inner toggle. */
+   settles, leaving only the final answer below. Inside, prose renders as quiet
+   narration and consecutive tool calls fold into collapsible .tool-group rows. */
 .process-chain {
   color: var(--subtle);
 }
@@ -1198,6 +1211,92 @@ button:disabled {
 .process-details .reasoning,
 .process-details .assistant-message {
   margin: 0;
+}
+/* Intermediate narration: demoted from full answer styling to quiet running
+   text — smaller and muted, so it reads as the run's narrative, not the answer. */
+.assistant-message[data-tone="quiet"] .assistant-body {
+  color: var(--subtle);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+/* A folded run of consecutive tool calls: one quiet row ("Ran 5 commands ⌄")
+   that expands to hairline-separated per-tool rows, each keeping its own output
+   toggle. No card chrome on the row itself — it reads as a single step. */
+.tool-group {
+  color: var(--subtle);
+}
+.tool-group > button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  color: var(--tertiary);
+  font-size: 11.5px;
+  text-align: left;
+}
+.tool-group > button:hover {
+  color: var(--subtle);
+}
+.tool-group .tool-status {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  color: var(--mint);
+}
+.tool-group[data-error="true"] .tool-status {
+  color: var(--danger);
+}
+.tool-group .tool-status .spinner {
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+}
+.tool-group-summary {
+  flex: none;
+  color: var(--subtle);
+}
+/* The currently executing tool, inline on the folded row while running. */
+.tool-group > button > code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tertiary);
+  font: 11px var(--mono);
+}
+/* Chevron sits right after the summary label, matching .process-chain and
+   .reasoning rows; the inline command detail trails after it. */
+.tool-group > button > svg {
+  flex: none;
+  transition: transform 0.15s ease;
+}
+.tool-group[data-open="true"] > button > svg {
+  transform: rotate(180deg);
+}
+/* Expanded: nested tool rows lose the card fill and stack on hairlines. */
+.tool-group-items {
+  margin: 2px 0 4px;
+  animation: fade-down 0.18s ease-out;
+}
+.tool-group-items .tool-card {
+  margin: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.tool-group-items .tool-card + .tool-card {
+  border-top: 1px solid var(--border);
+}
+.tool-group-items .tool-card > button {
+  padding: 5px 0;
+}
+.tool-group-items .tool-card pre {
+  border-top: 0;
+  padding-left: 25px;
 }
 /* Tool activity: a soft rounded bar in the conversation flow — circled status
    icon, bold tool name, gray mono args preview; expandable to the result. */
@@ -1490,6 +1589,7 @@ button:disabled {
 .assistant-message,
 .process-chain,
 .tool-card,
+.tool-group,
 .subagent-task-card,
 .queue-card,
 .thinking-pending,
@@ -1511,6 +1611,7 @@ button:disabled {
 }
 /* Completion check / failure icon pops in when the spinner swaps out. */
 .tool-card .tool-status > svg,
+.tool-group .tool-status > svg,
 .subagent-pill.status > svg,
 .subagent-task-card header .tool-status > svg {
   animation: check-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;

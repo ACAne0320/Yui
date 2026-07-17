@@ -6,12 +6,14 @@ import { Message } from "./Message";
 import { ProseBubble } from "./ProseBubble";
 import { Reasoning } from "./Reasoning";
 import { ToolCard } from "./ToolCard";
+import { ToolGroup } from "./ToolGroup";
 
 /**
  * Outer disclosure: the whole turn's reasoning + tool calls + intermediate
  * prose, summarized by total processing time. Collapsed by default once the run
- * settles, leaving only the final answer below; expand to replay the run, where
- * each tool call and thinking block carries its own inner toggle (second layer).
+ * settles, leaving only the final answer below. Inside, intermediate prose
+ * renders as quiet narration, consecutive tool calls fold into collapsible
+ * ToolGroup rows, and each thinking block keeps its own inner toggle.
  */
 export function ProcessDisclosure({
   segments,
@@ -78,10 +80,13 @@ export function ProcessDisclosure({
                     text={segment.text}
                     streaming={segment.live}
                     showCopy={false}
+                    tone="quiet"
                   />
                 );
               if (segment.kind === "reasoning")
                 return <Reasoning key={segment.id} text={segment.text} streaming={false} />;
+              if (segment.kind === "toolGroup")
+                return <ToolGroup key={segment.id} tools={segment.tools} />;
               if (segment.kind === "tool")
                 return (
                   <ToolCard

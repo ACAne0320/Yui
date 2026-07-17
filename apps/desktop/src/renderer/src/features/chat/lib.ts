@@ -119,24 +119,29 @@ export function textFromMessage(message: AppMessage): string {
 
 type ToolCallBlock = Extract<AppContentBlock, { type: "toolCall" }>;
 
+/** A single tool invocation inside a turn, standalone or inside a tool group. */
+export interface ToolSegment {
+  kind: "tool";
+  id: string;
+  name: string;
+  args?: unknown;
+  detail: unknown;
+  running: boolean;
+  error?: boolean;
+}
+
 /**
  * One ordered step inside a turn's process disclosure. Intermediate prose,
  * reasoning, and tool calls render in the order they occurred; the final reply's
  * text is excluded by `finalAssistantId` (it is lifted into the always-visible
- * answer bubble instead).
+ * answer bubble instead). Consecutive plain tool calls are folded into a
+ * `toolGroup` by `groupToolSegments`.
  */
 export type TurnSegment =
   | { kind: "prose"; id: string; text: string; live: boolean }
   | { kind: "reasoning"; id: string; text: string }
-  | {
-      kind: "tool";
-      id: string;
-      name: string;
-      args?: unknown;
-      detail: unknown;
-      running: boolean;
-      error?: boolean;
-    }
+  | ToolSegment
+  | { kind: "toolGroup"; id: string; tools: ToolSegment[] }
   | { kind: "message"; id: string; message: AppMessage };
 
 function toolResultDetail(message: AppMessage | undefined): unknown {
@@ -248,4 +253,41 @@ export function buildTurnSegments(
   }
 
   return segments;
+}
+
+/** Tools with dedicated rich rendering in ToolCard stay standalone and break a
+    group — folding a subagent report or memory card into a quiet row would hide it. */
+const UNGROUPABLE_TOOLS = new Set(["subagent", "remember"]);
+
+/**
+ * Fold runs of consecutive plain tool calls into one `toolGroup` segment, so a
+ * busy tool loop reads as a single collapsible row (Codex-style) instead of a
+ * wall of cards. Prose, reasoning, messages, and rich tools break a run; a lone
+ * tool stays a plain `tool` segment (one click to its output, no double toggle).
+ * The group id is the first tool's id, keeping the React key stable while
+ * streaming appends more calls to the run.
+ */
+export function groupToolSegments(segments: TurnSegment[]): TurnSegment[] {
+  const grouped: TurnSegment[] = [];
+  let pending: ToolSegment[] = [];
+  const flush = () => {
+    const [first] = pending;
+    if (pending.length >= 2 && first) {
+      grouped.push({ kind: "toolGroup", id: first.id, tools: pending });
+    } else {
+      grouped.push(...pending);
+    }
+    pending = [];
+  };
+
+  for (const segment of segments) {
+    if (segment.kind === "tool" && !UNGROUPABLE_TOOLS.has(segment.name)) {
+      pending.push(segment);
+      continue;
+    }
+    flush();
+    grouped.push(segment);
+  }
+  flush();
+  return grouped;
 }

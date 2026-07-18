@@ -1,5 +1,4 @@
 import { existsSync } from "node:fs";
-import { completeSimple } from "@earendil-works/pi-ai";
 import type { Api, Model } from "@earendil-works/pi-ai";
 import {
   type AgentSession,
@@ -108,8 +107,7 @@ export class PiAgentService implements AgentService {
       services = await createAgentSessionServices({
         cwd,
         agentDir: this.config.agentDir,
-        authStorage: this.infra.authStorage,
-        modelRegistry: this.infra.modelRegistry,
+        modelRuntime: this.infra.modelRuntime,
         // Teach the chat model how to build extensions for this host. Use an
         // override (not the plain `appendSystemPrompt`) so any user/project
         // append-system-prompt file the loader discovered is preserved.
@@ -129,7 +127,7 @@ export class PiAgentService implements AgentService {
         customTools: [
           createSubagentTool({
             agentDir: this.config.agentDir,
-            authStorage: this.infra.authStorage,
+            modelRuntime: this.infra.modelRuntime,
             modelRegistry: this.infra.modelRegistry,
             persona: this.persona,
             host: subagentHost,
@@ -155,13 +153,13 @@ export class PiAgentService implements AgentService {
       });
     };
     // Bind extensions as a canonical non-TUI host: dialogs go through the
-    // bridge, `hasUI` flips to true, and session_start fires here. (Pi 0.78
-    // derives hasUI from the bound uiContext; the `mode` binding only exists
-    // in newer Pi versions.) No commandContextActions: extension slash commands
-    // still run via prompt("/name") — their handlers get a working ui/exec/
-    // modelRegistry context — but Pi's session-control actions (newSession/
-    // fork/navigateTree/switchSession/reload) fall back to benign no-ops until
-    // we map them onto Yui's own session model.
+    // bridge, `hasUI` flips to true, and session_start fires here. `mode:
+    // "rpc"` matches Yui's RPC-style hosting (dialog-capable, no terminal
+    // UI). No commandContextActions: extension slash commands still run via
+    // prompt("/name") — their handlers get a working ui/exec/modelRegistry
+    // context — but Pi's session-control actions (newSession/fork/
+    // navigateTree/switchSession/reload) fall back to benign no-ops until we
+    // map them onto Yui's own session model.
     //
     // Do NOT await this. bindExtensions applies the tool/hook/UI bindings
     // synchronously (before its first await), so gating and the bridge are live
@@ -175,6 +173,7 @@ export class PiAgentService implements AgentService {
     void session
       .bindExtensions({
         uiContext: bridge,
+        mode: "rpc",
         onError: (error) => {
           this.pool.publish(sessionId, {
             type: "error",
@@ -288,8 +287,9 @@ export class PiAgentService implements AgentService {
     userText: string,
     maxTokens: number,
   ): Promise<string> {
-    const apiKey = await this.infra.authStorage.getApiKey(model.provider);
-    const response = await completeSimple(
+    // ModelRuntime owns request-auth resolution (stored credential, OAuth
+    // refresh, model headers), so no apiKey plumbing is needed here.
+    const response = await this.infra.modelRuntime.completeSimple(
       model,
       {
         systemPrompt,
@@ -297,7 +297,7 @@ export class PiAgentService implements AgentService {
           { role: "user", content: [{ type: "text", text: userText }], timestamp: Date.now() },
         ],
       },
-      { apiKey, maxTokens },
+      { maxTokens },
     );
     if (response.stopReason === "error") {
       throw new AppRuntimeError("internal", response.errorMessage || "Text generation failed.");

@@ -7,6 +7,7 @@ export const thinkingLabelKeys = {
   medium: "chat.thinking.medium",
   high: "chat.thinking.high",
   xhigh: "chat.thinking.xhigh",
+  max: "chat.thinking.max",
 } satisfies Record<ThinkingLevel, string>;
 
 export const fallbackThinkingLevels: ThinkingLevel[] = [
@@ -16,4 +17,5 @@ export const fallbackThinkingLevels: ThinkingLevel[] = [
   "medium",
   "high",
   "xhigh",
+  "max",
 ];

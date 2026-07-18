@@ -519,7 +519,8 @@ button:disabled {
   background: rgba(37, 33, 29, 0.055);
 }
 .thinking-button[data-level="high"],
-.thinking-button[data-level="xhigh"] {
+.thinking-button[data-level="xhigh"],
+.thinking-button[data-level="max"] {
   color: var(--raised);
   background: var(--mint);
 }
@@ -744,6 +745,10 @@ button:disabled {
 .thinking-option i[data-level="xhigh"] {
   background: var(--mint-ink);
   height: 17px;
+}
+.thinking-option i[data-level="max"] {
+  background: var(--mint-ink);
+  height: 19px;
 }
 .thread-pane {
   height: 100%;

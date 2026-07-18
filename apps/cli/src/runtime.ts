@@ -6,7 +6,7 @@ export async function withRuntime<T>(
   fn: (runtime: AppRuntime) => Promise<T>,
 ): Promise<T> {
   const config = resolveRuntimeConfig(overrides.cwd ? { cwd: overrides.cwd } : {});
-  const runtime = createRuntime(config);
+  const runtime = await createRuntime(config);
   try {
     return await fn(runtime);
   } finally {

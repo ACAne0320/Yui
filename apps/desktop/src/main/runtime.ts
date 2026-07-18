@@ -4,7 +4,7 @@ import { createRuntime, resolveRuntimeConfig } from "@yui/runtime";
 let runtime: AppRuntime | null = null;
 let disposePromise: Promise<void> | null = null;
 
-export function initializeDesktopRuntime(): AppRuntime {
+export async function initializeDesktopRuntime(): Promise<AppRuntime> {
   if (runtime) {
     return runtime;
   }
@@ -27,7 +27,7 @@ export function initializeDesktopRuntime(): AppRuntime {
   // of leaking ~/.pi/agent/bin. Set unconditionally to keep it in lockstep with
   // the agentDir we pass to createAgentSessionServices.
   process.env.PI_CODING_AGENT_DIR = config.agentDir;
-  runtime = createRuntime({ ...config, cwd: config.homeDir });
+  runtime = await createRuntime({ ...config, cwd: config.homeDir });
   return runtime;
 }
 

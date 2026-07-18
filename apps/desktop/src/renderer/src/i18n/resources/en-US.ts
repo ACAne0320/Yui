@@ -115,6 +115,7 @@ export const enUS = {
       medium: "Medium",
       high: "High",
       xhigh: "Extra high",
+      max: "Max",
       active: "Thinking…",
       view: "View reasoning",
       took: "Thought for {{duration}}",

@@ -30,7 +30,7 @@ export function buildExtensionAuthoringNote(agentDir: string): string {
     "- Do NOT use ctx.ui.custom(), TUI chrome (setFooter/setHeader/setEditorComponent/onTerminalInput), tool renderCall/renderResult, registerCommand handler bodies, registerShortcut, or registerMessageRenderer: they load but silently do nothing in Yui.",
     '- To call an external API for a provider the user configured in Yui (e.g. DeepSeek, OpenAI), read the key with `await ctx.modelRegistry.getApiKeyForProvider("<providerId>")` rather than process.env — Yui stores credentials in auth storage, not env vars.',
     "- Keep session_start and other lifecycle handlers non-blocking: never await slow work (network, long timers) inside them (pi awaits handlers in series). Kick it off fire-and-forget and update the UI when it resolves.",
-    '- Import runtime types from "@earendil-works/pi-coding-agent" (v0.78.0) and tool schemas from "typebox". Do not invent APIs or copy from any pi/ source tree.',
+    '- Import runtime types from "@earendil-works/pi-coding-agent" (v0.80.10) and tool schemas from "typebox". Do not invent APIs or copy from any pi/ source tree.',
     "- Extensions run as trusted local code with no sandbox; show the user the source before they enable it.",
   ];
   if (existsSync(DOC_PATH)) {

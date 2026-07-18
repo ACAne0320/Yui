@@ -61,7 +61,7 @@ describe("PiAgentService extension binding", () => {
     delete flags.yuiBlockGate;
   });
 
-  function setup(): { config: RuntimeConfig; service: PiAgentService } {
+  async function setup(): Promise<{ config: RuntimeConfig; service: PiAgentService }> {
     dir = mkdtempSync(join(tmpdir(), "yui-ext-"));
     const agentDir = join(dir, "agent");
     const sessionDir = join(dir, "sessions");
@@ -72,12 +72,15 @@ describe("PiAgentService extension binding", () => {
     writeFileSync(join(agentDir, "extensions", "fixture.js"), FIXTURE_EXTENSION);
 
     const config: RuntimeConfig = { homeDir: dir, agentDir, sessionDir, cwd };
-    service = new PiAgentService(createInfrastructure(config), config);
+    service = new PiAgentService(
+      await createInfrastructure(config, { allowModelNetwork: false }),
+      config,
+    );
     return { config, service };
   }
 
   it("binds the fixture extension: session_start ran, UI is live, and a confirm round-trips", async () => {
-    const { config, service: agentService } = setup();
+    const { config, service: agentService } = await setup();
     const opened = await agentService.openSession({ cwd: config.cwd });
     const sessionId = opened.sessionId;
 
@@ -115,7 +118,7 @@ describe("PiAgentService extension binding", () => {
   });
 
   it("rejects the pending dialog with the default when the session closes", async () => {
-    const { config, service: agentService } = setup();
+    const { config, service: agentService } = await setup();
     const opened = await agentService.openSession({ cwd: config.cwd });
 
     await vi.waitFor(() =>
@@ -126,7 +129,7 @@ describe("PiAgentService extension binding", () => {
   });
 
   it("does not block the session open on a slow session_start handler", async () => {
-    const { config, service: agentService } = setup();
+    const { config, service: agentService } = await setup();
     let release!: () => void;
     flags.yuiBlockGate = new Promise<void>((resolve) => {
       release = resolve;
@@ -151,7 +154,7 @@ describe("PiAgentService extension binding", () => {
   });
 
   it("surfaces extension load errors through getExtensions", async () => {
-    const { config, service: agentService } = setup();
+    const { config, service: agentService } = await setup();
     writeFileSync(
       join(config.agentDir, "extensions", "broken.js"),
       "export default function broken() { throw new Error('boom at load'); }",

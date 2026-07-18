@@ -49,7 +49,7 @@ config
   });
 config
   .command("set-thinking <level>")
-  .description("Set the default thinking level (off|minimal|low|medium|high|xhigh)")
+  .description("Set the default thinking level (off|minimal|low|medium|high|xhigh|max)")
   .action(async (level: string) => {
     process.exitCode = await configSetThinking(level);
   });

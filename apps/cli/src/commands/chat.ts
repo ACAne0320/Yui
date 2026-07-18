@@ -33,7 +33,7 @@ export async function runChat(opts: ChatOptions): Promise<number> {
     thinkingLevel = parsed.data;
   }
 
-  const runtime = createRuntime(resolveRuntimeConfig({ cwd }));
+  const runtime = await createRuntime(resolveRuntimeConfig({ cwd }));
   let exitCode = 0;
 
   try {

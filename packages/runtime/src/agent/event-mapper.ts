@@ -191,6 +191,14 @@ export class AgentEventMapper {
           },
         ];
 
+      // New in Pi 0.80, intentionally not surfaced in Yui contracts yet:
+      // `agent_settled` fires after agent_end once retries/compaction settle,
+      // and `entry_appended` covers display-only session entries. Dropping
+      // them preserves the pre-upgrade behavior.
+      case "agent_settled":
+      case "entry_appended":
+        return [];
+
       default:
         return this.dropUnknown(event);
     }

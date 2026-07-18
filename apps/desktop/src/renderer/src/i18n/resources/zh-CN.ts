@@ -107,6 +107,7 @@ export const zhCN = {
       medium: "中",
       high: "高",
       xhigh: "超高",
+      max: "最高",
       active: "正在思考…",
       view: "查看思考过程",
       took: "思考了 {{duration}}",

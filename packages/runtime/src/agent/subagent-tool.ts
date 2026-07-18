@@ -10,10 +10,12 @@
 // progress folds into structured transcripts (see subagent-transcript.ts).
 //
 // Each child gets FRESH cwd-bound services instead of reusing the parent's:
-// AgentSession's constructor copies its action handlers into the (per-services)
-// shared extension runtime object, so two live sessions on one services object
-// would hijack each other's extension API routing. authStorage/modelRegistry
-// are profile-global and stay shared.
+// Pi 0.78 sessions wrote their action handlers into the services-owned
+// extension runtime, so two live sessions on one services object hijacked
+// each other's extension routing. Since 0.80 the ExtensionRunner is
+// per-session and services no longer carry extension state, but fresh
+// services remain the conservative choice (cheap, zero shared mutable state).
+// modelRuntime/modelRegistry are profile-global and stay shared.
 //
 // The children's extensions bind to the PARENT's UI bridge: gating extensions
 // (e.g. permission-gate) keep working inside subagents and their dialogs
@@ -22,13 +24,13 @@
 import type { AgentToolResult } from "@earendil-works/pi-agent-core";
 import {
   type AgentSession,
-  type AuthStorage,
   createAgentSessionFromServices,
   createAgentSessionServices,
   defineTool,
   type ExtensionError,
   type ExtensionUIContext,
   type ModelRegistry,
+  type ModelRuntime,
   SessionManager,
 } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
@@ -79,7 +81,7 @@ export interface SubagentHost {
 
 export interface SubagentToolOptions {
   agentDir: string;
-  authStorage: AuthStorage;
+  modelRuntime: ModelRuntime;
   modelRegistry: ModelRegistry;
   persona: PersonaStore;
   host: SubagentHost;
@@ -355,8 +357,7 @@ export function createSubagentTool(options: SubagentToolOptions) {
           const services = await createAgentSessionServices({
             cwd,
             agentDir: options.agentDir,
-            authStorage: options.authStorage,
-            modelRegistry: options.modelRegistry,
+            modelRuntime: options.modelRuntime,
             resourceLoaderOptions:
               appendSystemPrompt.length > 0 ? { appendSystemPrompt } : undefined,
           });

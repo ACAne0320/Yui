@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
-import type { AuthStorage, ModelRegistry } from "@earendil-works/pi-coding-agent";
+import type { AuthPrompt } from "@earendil-works/pi-ai";
+import {
+  type ModelRegistry,
+  type ModelRuntime,
+  readStoredCredential,
+} from "@earendil-works/pi-coding-agent";
 import {
   AppRuntimeError,
   type AuthMethod,
@@ -28,20 +33,45 @@ export class PiAuthService implements AuthService {
   private readonly oauthFlows = new Map<string, OAuthFlow>();
 
   constructor(
-    private readonly authStorage: AuthStorage,
+    private readonly modelRuntime: ModelRuntime,
     private readonly modelRegistry: ModelRegistry,
+    private readonly authPath: string,
   ) {}
 
   async setApiKey(input: SetApiKeyInput): Promise<void> {
-    // `getAvailable()` re-checks auth live, so no registry refresh is needed
-    // for a plain api-key change.
-    this.authStorage.set(input.providerId, { type: "api_key", key: input.apiKey });
-    this.assertPersisted("store credentials");
+    // Route through the provider's own api-key login so the credential is
+    // persisted by Pi's credential store (Pi 0.80 no longer exposes a direct
+    // auth.json writer). Yui's settings UI collects a single key, so answer
+    // the first secret prompt with it; providers whose setup needs more
+    // fields (e.g. Cloudflare's account/gateway IDs) fail loudly here instead
+    // of silently storing a credential that cannot resolve.
+    let answered = false;
+    try {
+      await this.modelRuntime.login(input.providerId, "api_key", {
+        prompt: (prompt) => {
+          if (answered || prompt.type === "select") {
+            return Promise.reject(
+              new Error(
+                `Provider "${input.providerId}" requires more than a plain API key to log in.`,
+              ),
+            );
+          }
+          answered = true;
+          return Promise.resolve(input.apiKey);
+        },
+        notify: () => {},
+      });
+    } catch (error) {
+      throw toAppError("store credentials", error);
+    }
   }
 
   async removeApiKey(input: RemoveApiKeyInput): Promise<void> {
-    this.authStorage.remove(input.providerId);
-    this.assertPersisted("remove credentials");
+    try {
+      await this.modelRuntime.logout(input.providerId);
+    } catch (error) {
+      throw toAppError("remove credentials", error);
+    }
   }
 
   async listProviders(): Promise<ProviderStatus[]> {
@@ -54,17 +84,20 @@ export class PiAuthService implements AuthService {
     // that have a stored credential.
     const providerIds = new Set<string>();
     for (const model of this.modelRegistry.getAll()) providerIds.add(model.provider);
-    for (const providerId of this.authStorage.list()) providerIds.add(providerId);
+    for (const credential of await this.modelRuntime.listCredentials()) {
+      providerIds.add(credential.providerId);
+    }
 
     return [...providerIds].toSorted().map((providerId) => {
-      // Use the registry's status rather than AuthStorage alone: it also accounts
-      // for a provider's inline `models.json` key, so `configured` stays
-      // consistent with `getAvailable()` (which counts those models) instead of
-      // reporting a provider as unconfigured while it has available models.
+      // Use the registry's status rather than the credential store alone: it
+      // also accounts for a provider's inline `models.json` key, so
+      // `configured` stays consistent with `getAvailable()` (which counts
+      // those models) instead of reporting a provider as unconfigured while
+      // it has available models.
       const status = this.modelRegistry.getProviderAuthStatus(providerId);
       // Echo back only locally stored api-key credentials so the settings UI
       // can pre-fill and edit them; OAuth/env-sourced secrets are left out.
-      const credential = this.authStorage.get(providerId);
+      const credential = readStoredCredential(providerId, this.authPath);
       const apiKey = credential?.type === "api_key" ? credential.key : undefined;
       return {
         providerId,
@@ -72,7 +105,7 @@ export class PiAuthService implements AuthService {
         configured: status.configured,
         authMethods: getAuthMethods(
           providerId,
-          this.authStorage.getOAuthProviders().some((p) => p.id === providerId),
+          this.modelRuntime.getProvider(providerId)?.auth?.oauth !== undefined,
         ),
         credentialType: credential?.type,
         authSource: status.source,
@@ -83,10 +116,9 @@ export class PiAuthService implements AuthService {
   }
 
   async beginOAuthLogin(input: BeginOAuthLoginInput): Promise<OAuthLoginState> {
-    const provider = this.authStorage
-      .getOAuthProviders()
-      .find((item) => item.id === input.providerId);
-    if (!provider) {
+    const provider = this.modelRuntime.getProvider(input.providerId);
+    const oauth = provider?.auth?.oauth;
+    if (!provider || !oauth) {
       throw new AppRuntimeError(
         "invalid_input",
         `Provider "${input.providerId}" does not support subscription login.`,
@@ -97,7 +129,7 @@ export class PiAuthService implements AuthService {
       state: {
         flowId: randomUUID(),
         providerId: provider.id,
-        providerName: provider.name,
+        providerName: oauth.name || provider.name,
         status: "running",
       },
       controller: new AbortController(),
@@ -150,52 +182,42 @@ export class PiAuthService implements AuthService {
 
   private async runOAuthLogin(flow: OAuthFlow): Promise<void> {
     try {
-      await this.authStorage.login(flow.state.providerId, {
-        onAuth: (info) => {
-          flow.state = {
-            ...flow.state,
-            authUrl: info.url,
-            instructions: info.instructions,
-            message: "Complete login in your browser.",
-          };
-        },
-        onDeviceCode: (info) => {
-          flow.state = {
-            ...flow.state,
-            deviceCode: {
-              userCode: info.userCode,
-              verificationUri: info.verificationUri,
-              expiresInSeconds: info.expiresInSeconds,
-            },
-            message: "Enter the device code in your browser.",
-          };
-        },
-        onPrompt: (prompt) =>
-          this.requestOAuthInput(flow, {
-            kind: "input",
-            message: prompt.message,
-            placeholder: prompt.placeholder,
-          }),
-        onProgress: (message) => {
-          flow.state = { ...flow.state, message };
-        },
-        onManualCodeInput: () =>
-          this.requestOAuthInput(flow, {
-            kind: "manual_code",
-            message: "Paste the authorization code or full redirect URL.",
-          }),
-        onSelect: (prompt) =>
-          this.requestOAuthInput(flow, {
-            kind: "select",
-            message: prompt.message,
-            options: prompt.options,
-          }),
+      await this.modelRuntime.login(flow.state.providerId, "oauth", {
         signal: flow.controller.signal,
+        notify: (event) => {
+          switch (event.type) {
+            case "auth_url":
+              flow.state = {
+                ...flow.state,
+                authUrl: event.url,
+                instructions: event.instructions,
+                message: "Complete login in your browser.",
+              };
+              break;
+            case "device_code":
+              flow.state = {
+                ...flow.state,
+                deviceCode: {
+                  userCode: event.userCode,
+                  verificationUri: event.verificationUri,
+                  expiresInSeconds: event.expiresInSeconds,
+                },
+                message: "Enter the device code in your browser.",
+              };
+              break;
+            case "info":
+            case "progress":
+              flow.state = { ...flow.state, message: event.message };
+              break;
+          }
+        },
+        prompt: (prompt) => this.requestOAuthInput(flow, toOAuthLoginPrompt(prompt)),
       });
 
       if (flow.state.status !== "running") return;
-      this.assertPersisted("store subscription credentials");
-      this.modelRegistry.refresh();
+      // ModelRuntime.login already persisted the credential through the
+      // credential store (store failures reject) and refreshed the model
+      // catalog, so nothing else is needed here.
       flow.pending = undefined;
       flow.state = {
         ...flow.state,
@@ -234,22 +256,6 @@ export class PiAuthService implements AuthService {
     if (!flow) throw new AppRuntimeError("invalid_input", `Unknown OAuth login flow: ${flowId}`);
     return flow;
   }
-
-  /**
-   * Pi's AuthStorage swallows disk errors (and no-ops entirely when auth.json
-   * failed to load) instead of throwing, so a write can silently fail while we
-   * report success. Surface any recorded error as a real failure.
-   */
-  private assertPersisted(action: string): void {
-    const errors = this.authStorage.drainErrors();
-    if (errors.length > 0) {
-      throw new AppRuntimeError(
-        "internal",
-        `Failed to ${action}: ${errors.map((e) => e.message).join("; ")}`,
-        errors,
-      );
-    }
-  }
 }
 
 const OAUTH_ONLY_PROVIDERS = new Set(["github-copilot", "openai-codex"]);
@@ -258,6 +264,34 @@ function getAuthMethods(providerId: string, supportsOAuth: boolean): AuthMethod[
   if (OAUTH_ONLY_PROVIDERS.has(providerId)) return ["oauth"];
   if (supportsOAuth) return ["oauth", "api_key"];
   return ["api_key"];
+}
+
+/** Map a Pi login prompt onto Yui's three OAuth prompt kinds. */
+function toOAuthLoginPrompt(prompt: AuthPrompt): Omit<OAuthLoginPrompt, "requestId"> {
+  switch (prompt.type) {
+    case "select":
+      return {
+        kind: "select",
+        message: prompt.message,
+        options: prompt.options.map((option) => ({ id: option.id, label: option.label })),
+      };
+    case "manual_code":
+      return {
+        kind: "manual_code",
+        message: prompt.message || "Paste the authorization code or full redirect URL.",
+        placeholder: prompt.placeholder,
+      };
+    default:
+      return { kind: "input", message: prompt.message, placeholder: prompt.placeholder };
+  }
+}
+
+function toAppError(action: string, error: unknown): AppRuntimeError {
+  return new AppRuntimeError(
+    "internal",
+    `Failed to ${action}: ${error instanceof Error ? error.message : String(error)}`,
+    error,
+  );
 }
 
 function cloneOAuthState(state: OAuthLoginState): OAuthLoginState {

@@ -14,9 +14,9 @@
     "dist": "pnpm build && electron-builder --mac dmg zip --publish never"
   },
   "dependencies": {
-    "@earendil-works/pi-agent-core": "0.78.0",
-    "@earendil-works/pi-ai": "0.78.0",
-    "@earendil-works/pi-coding-agent": "0.78.0",
+    "@earendil-works/pi-agent-core": "0.80.10",
+    "@earendil-works/pi-ai": "0.80.10",
+    "@earendil-works/pi-coding-agent": "0.80.10",
     "@radix-ui/react-popover": "^1.1.16",
     "@radix-ui/react-toast": "^1.2.16",
     "@streamdown/cjk": "^1.0.3",

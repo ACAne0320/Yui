@@ -48,7 +48,7 @@ export async function configSetThinking(level: string): Promise<number> {
   const parsed = thinkingLevelSchema.safeParse(level);
   if (!parsed.success) {
     process.stderr.write(
-      "error: thinking level must be one of off, minimal, low, medium, high, xhigh\n",
+      "error: thinking level must be one of off, minimal, low, medium, high, xhigh, max\n",
     );
     return 1;
   }

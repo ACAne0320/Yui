@@ -4,9 +4,9 @@ import { join } from "node:path";
 import type {
   AgentSession,
   AgentSessionEvent,
-  AuthStorage,
   ExtensionUIContext,
   ModelRegistry,
+  ModelRuntime,
 } from "@earendil-works/pi-coding-agent";
 import { afterEach, describe, expect, it } from "vitest";
 import type { PersonaStore } from "../persona/persona-store.ts";
@@ -307,7 +307,7 @@ describe("subagent tool parameter validation", () => {
     dir = mkdtempSync(join(tmpdir(), "yui-agents-"));
     return createSubagentTool({
       agentDir: dir,
-      authStorage: {} as AuthStorage,
+      modelRuntime: {} as ModelRuntime,
       modelRegistry: {} as ModelRegistry,
       persona: {} as PersonaStore,
       host: {
@@ -324,7 +324,7 @@ describe("subagent tool parameter validation", () => {
     dir = mkdtempSync(join(tmpdir(), "yui-agents-"));
     const tool = createSubagentTool({
       agentDir: dir,
-      authStorage: {} as AuthStorage,
+      modelRuntime: {} as ModelRuntime,
       modelRegistry: {} as ModelRegistry,
       persona: {} as PersonaStore,
       host: {},

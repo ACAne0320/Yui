@@ -77,7 +77,7 @@ if (!app.requestSingleInstanceLock()) {
       // Route the runtime's fetch through Chromium so OAuth token exchange and
       // model calls honor the same proxy the OAuth browser window uses.
       await configureMainNetwork();
-      const runtime = initializeDesktopRuntime();
+      const runtime = await initializeDesktopRuntime();
       installAttachmentProtocol(runtime);
       registeredIpc = registerIpc(() => mainWindow, runtime);
       openMainWindow();

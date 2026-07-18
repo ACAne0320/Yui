@@ -25,7 +25,7 @@ export function printDefaults(defaults: AppDefaults): void {
   process.stdout.write(`  thinking  ${thinking}\n`);
   process.stdout.write("\nSet (writes global settings.json):\n");
   process.stdout.write("  yui config set-model <provider/model>     (see `yui models list`)\n");
-  process.stdout.write("  yui config set-thinking <off|minimal|low|medium|high|xhigh>\n");
+  process.stdout.write("  yui config set-thinking <off|minimal|low|medium|high|xhigh|max>\n");
 }
 
 export function printJson(data: unknown): void {

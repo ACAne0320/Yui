@@ -13,9 +13,9 @@ import { PiSettingsService } from "./settings/settings-service.ts";
  * Compose the shared Pi infrastructure and Yui services into an AppRuntime.
  * One runtime owns one set of Pi instances and a pool of active sessions.
  */
-export function createRuntime(config: RuntimeConfig): AppRuntime {
-  const infra = createInfrastructure(config);
-  const auth = new PiAuthService(infra.authStorage, infra.modelRegistry);
+export async function createRuntime(config: RuntimeConfig): Promise<AppRuntime> {
+  const infra = await createInfrastructure(config);
+  const auth = new PiAuthService(infra.modelRuntime, infra.modelRegistry, infra.authPath);
   const models = new PiModelService(infra.modelRegistry);
   const settings = new PiSettingsService(config, infra.modelRegistry);
   const persona = PersonaStore.forConfig(config);

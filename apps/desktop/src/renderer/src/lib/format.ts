@@ -29,6 +29,18 @@ export function formatError(error: unknown): string {
   return i18n.t("common.unknownError");
 }
 
+/**
+ * Compact token counts for chips and toasts: 128540 -> "129k",
+ * 1049000 -> "1M", 860 -> "860".
+ */
+export function formatTokenCount(tokens: number): string {
+  if (tokens >= 1_000_000) {
+    const m = Math.round(tokens / 100_000) / 10;
+    return `${Number.isInteger(m) ? m.toFixed(0) : m}M`;
+  }
+  return tokens >= 1000 ? `${Math.round(tokens / 1000)}k` : String(tokens);
+}
+
 // Collapse the user's home directory to `~` across macOS (/Users/<name>),
 // Linux (/home/<name>) and Windows (C:\Users\<name>).
 const HOME_PREFIX = /^(?:\/Users\/[^/]+|\/home\/[^/]+|[A-Za-z]:\\Users\\[^\\]+)/;

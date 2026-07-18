@@ -79,6 +79,8 @@ export const desktopIpcChannels = {
     getExtensionUiState: "agents:get-extension-ui-state",
     getExtensions: "agents:get-extensions",
     reloadSession: "agents:reload-session",
+    getContextUsage: "agents:get-context-usage",
+    compact: "agents:compact",
   },
 } as const;
 

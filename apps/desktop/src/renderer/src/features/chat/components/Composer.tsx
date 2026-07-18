@@ -11,6 +11,7 @@ import { SmoothCaret } from "@renderer/ui/SmoothCaret";
 import { fallbackThinkingLevels, thinkingLabelKeys } from "../constants";
 import { type SlashCommand, filterSlashCommands, slashQuery } from "../slash-commands";
 import type { ComposerProps } from "../types";
+import { ContextGauge } from "./ContextGauge";
 import { SlashCommandMenu } from "./SlashCommandMenu";
 
 export function Composer({
@@ -288,6 +289,8 @@ export function Composer({
           </Popover>
 
           <div className="composer-spacer" />
+
+          <ContextGauge />
 
           <Popover
             align="end"

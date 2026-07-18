@@ -4,6 +4,8 @@ import type {
   AppMessage,
   AppSessionInfo,
   AppSessionSummary,
+  CompactSessionInput,
+  ContextUsage,
   DeleteSessionInput,
   GetHistoryInput,
   GetSessionInfoInput,
@@ -278,6 +280,18 @@ export interface AgentService {
    * a turn is streaming. Mirrors Pi's `/reload`.
    */
   reloadSession(sessionId: string): Promise<void>;
+  /**
+   * Live context-window usage of a session (tokens/window/percent), or
+   * `undefined` when the session is not active. Mirrors Pi's footer gauge.
+   */
+  getContextUsage(sessionId: string): Promise<ContextUsage | undefined>;
+  /**
+   * Manually compact the session's context, persisting a summary entry (mirrors
+   * Pi's `/compact`). Progress and outcome surface as `compaction_start` /
+   * `compaction_end` events. Rejects with `session_busy` if a turn is
+   * streaming or a compaction is already running.
+   */
+  compact(input: CompactSessionInput): Promise<void>;
 }
 
 export interface AppRuntime {

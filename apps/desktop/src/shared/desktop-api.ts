@@ -12,6 +12,8 @@ import type {
   AppSessionInfo,
   AppSessionSummary,
   BeginOAuthLoginInput,
+  CompactSessionInput,
+  ContextUsage,
   ExtensionUiSnapshot,
   GetHistoryInput,
   GetSessionInfoInput,
@@ -175,5 +177,7 @@ export interface YuiDesktopApi {
     getExtensionUiState(input: SessionIdInput): Promise<ExtensionUiSnapshot>;
     getExtensions(input: SessionIdInput): Promise<SessionExtensionsInfo>;
     reloadSession(input: SessionIdInput): Promise<void>;
+    getContextUsage(input: SessionIdInput): Promise<ContextUsage | undefined>;
+    compact(input: CompactSessionInput): Promise<void>;
   };
 }

@@ -171,6 +171,11 @@ export const enUS = {
       systemMessage: "System message",
       imageAlt: "Attached image",
     },
+    context: {
+      title: "Context window",
+      percentUsed: "{{percent}}% used",
+      usageUnknown: "Usage unknown",
+    },
     palette: {
       placeholder: "Search chats or working directories…",
       empty: "No matching chats",
@@ -195,6 +200,10 @@ export const enUS = {
       label: "Commands",
       new: { title: "New chat", description: "Start a new conversation" },
       reload: { title: "Reload", description: "Reload extensions, skills, prompts, and settings" },
+      compact: {
+        title: "Compact context",
+        description: "Summarize the conversation to free up context space",
+      },
       extensionTag: "Extension",
     },
   },

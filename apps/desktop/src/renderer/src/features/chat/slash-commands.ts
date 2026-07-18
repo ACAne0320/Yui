@@ -51,6 +51,15 @@ export function buildSlashCommands(
       kind: "app",
       run: () => void conversation.reloadSession(),
     },
+    {
+      id: "app:compact",
+      token: "compact",
+      title: t("chat.slash.compact.title"),
+      description: t("chat.slash.compact.description"),
+      icon: "db",
+      kind: "app",
+      run: () => void conversation.compact(),
+    },
   ];
 
   const extension: SlashCommand[] = extensionCommands.map((command) => ({

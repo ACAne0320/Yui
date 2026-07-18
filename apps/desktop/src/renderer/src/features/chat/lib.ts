@@ -261,8 +261,8 @@ const UNGROUPABLE_TOOLS = new Set(["subagent", "remember"]);
 
 /**
  * Fold runs of consecutive plain tool calls into one `toolGroup` segment, so a
- * busy tool loop reads as a single collapsible row (Codex-style) instead of a
- * wall of cards. Prose, reasoning, messages, and rich tools break a run; a lone
+ * busy tool loop reads as a single collapsible row instead of a wall of
+ * cards. Prose, reasoning, messages, and rich tools break a run; a lone
  * tool stays a plain `tool` segment (one click to its output, no double toggle).
  * The group id is the first tool's id, keeping the React key stable while
  * streaming appends more calls to the run.

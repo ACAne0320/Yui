@@ -353,6 +353,20 @@ async function reloadSession() {
   }
 }
 
+// Compact the active session's context in place (mirrors Pi's `/compact`).
+// Progress (the "compacting" indicator) and the result toast arrive via
+// compaction events, so nothing is rendered here. Rejects with `session_busy`
+// mid-turn or while another compaction runs; that error is surfaced as-is.
+async function compact() {
+  const sessionId = useChatStore.getState().active?.sessionId;
+  if (!sessionId) return;
+  try {
+    await api.agents.compact({ sessionId });
+  } catch (error) {
+    useUiStore.getState().setNotice(formatError(error));
+  }
+}
+
 // Execute an extension slash command (e.g. "/greet args") on the active session.
 // Routed through prompt(), which detects a registered command and runs its
 // handler instead of sending a model turn — so no user message is added and no
@@ -390,6 +404,10 @@ async function maybeRunSlashCommand(text: string): Promise<boolean> {
   }
   if (token === "reload") {
     void reloadSession();
+    return true;
+  }
+  if (token === "compact") {
+    void compact();
     return true;
   }
   return false;
@@ -456,6 +474,7 @@ export const conversation = {
   browseCwd,
   chooseModel,
   chooseThinking,
+  compact,
   deleteConversation,
   renameConversation,
   openDirectory,

@@ -122,6 +122,20 @@ export async function runChat(opts: ChatOptions): Promise<number> {
         continue;
       }
       if (text === "/exit" || text === "/quit") break;
+      // Manual context compaction (mirrors the desktop /compact action).
+      // Compaction progress and outcome render through the event subscription.
+      if (text === "/compact" || text.startsWith("/compact ")) {
+        try {
+          await runtime.agents.compact({
+            sessionId,
+            instructions: text.slice("/compact".length).trim() || undefined,
+          });
+        } catch (error) {
+          reportError(error);
+        }
+        showPrompt();
+        continue;
+      }
       try {
         if (runtime.agents.isBusy(sessionId)) {
           // A streaming session rejects prompts; queue the input to run after

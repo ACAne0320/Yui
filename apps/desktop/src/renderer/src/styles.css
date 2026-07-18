@@ -3261,6 +3261,44 @@ button.mini-toggle:disabled {
   color: var(--tertiary);
   font: 10.5px var(--mono);
 }
+.context-gauge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.context-gauge-ring .context-gauge-track {
+  fill: none;
+  stroke: var(--border-firm);
+  stroke-width: 2.4;
+}
+.context-gauge-ring .context-gauge-fill {
+  fill: none;
+  stroke: var(--mint-ink);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+.context-gauge[data-state="error"] .context-gauge-track {
+  stroke: var(--red, #b4544a);
+}
+.context-gauge[data-state="unknown"] .context-gauge-fill {
+  opacity: 0.35;
+}
+.context-popover {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 170px;
+}
+.context-popover-line {
+  color: var(--subtle);
+  font: 11px var(--mono);
+  white-space: nowrap;
+}
+.context-popover-strong {
+  color: var(--ink);
+  font-weight: 600;
+}
 .toast {
   position: fixed;
   z-index: 140;

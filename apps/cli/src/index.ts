@@ -5,7 +5,7 @@ import { runChat } from "./commands/chat.ts";
 import { configSetModel, configSetThinking, configShow } from "./commands/config.ts";
 import { modelsList } from "./commands/models.ts";
 import { profileShow } from "./commands/profile.ts";
-import { sessionList, sessionShow } from "./commands/session.ts";
+import { sessionCompact, sessionList, sessionShow } from "./commands/session.ts";
 
 const program = new Command();
 program.name("yui").description("Yui local-first agent CLI");
@@ -91,6 +91,13 @@ session
   .option("--json", "stable JSON output")
   .action(async (ref: string, opts: { json?: boolean; context?: boolean }) => {
     process.exitCode = await sessionShow(ref, opts);
+  });
+session
+  .command("compact <session>")
+  .description("Manually compact a session's context (by id, id prefix, or path)")
+  .option("--instructions <text>", "steering instructions for the compaction summary")
+  .action(async (ref: string, opts: { instructions?: string }) => {
+    process.exitCode = await sessionCompact(ref, opts);
   });
 
 program

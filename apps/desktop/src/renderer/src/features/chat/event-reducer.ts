@@ -1,12 +1,8 @@
 import type { AppAgentEvent, ExtensionUiSnapshot } from "@yui/contracts";
 import i18n from "@renderer/i18n";
+import { formatTokenCount } from "@renderer/lib/format";
 import { upsertMessage } from "./lib";
 import type { ChatRealtimeState } from "./types";
-
-/** Compact token counts for toast copy: 128540 -> "129k", 860 -> "860". */
-function formatTokenCount(tokens: number): string {
-  return tokens >= 1000 ? `${Math.round(tokens / 1000)}k` : String(tokens);
-}
 
 // One-shot side effects the store cannot apply itself: catalog refreshes,
 // user-facing notices (which live in the ui store, not in chat state, so a

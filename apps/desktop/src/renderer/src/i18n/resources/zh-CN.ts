@@ -163,6 +163,11 @@ export const zhCN = {
       systemMessage: "系统消息",
       imageAlt: "附带的图片",
     },
+    context: {
+      title: "上下文窗口",
+      percentUsed: "已用 {{percent}}%",
+      usageUnknown: "用量未知",
+    },
     palette: {
       placeholder: "搜索对话或工作目录…",
       empty: "没有匹配的对话",
@@ -187,6 +192,7 @@ export const zhCN = {
       label: "命令",
       new: { title: "新建对话", description: "开始一个新的对话" },
       reload: { title: "重新加载", description: "重新加载扩展、技能、提示词与设置" },
+      compact: { title: "压缩上下文", description: "总结对话内容，释放上下文空间" },
       extensionTag: "扩展",
     },
   },

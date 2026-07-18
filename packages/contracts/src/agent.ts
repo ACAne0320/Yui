@@ -165,6 +165,26 @@ export const generateTitleInputSchema = z.object({
 });
 export type GenerateTitleInput = z.infer<typeof generateTitleInputSchema>;
 
+/**
+ * Live context-window usage of a session, as reported by Pi. `tokens` (and
+ * therefore `percent`) is null when unknown — e.g. right after a compaction,
+ * before the next assistant response carries fresh usage.
+ */
+export const contextUsageSchema = z.object({
+  tokens: z.number().nullable(),
+  contextWindow: z.number(),
+  percent: z.number().nullable(),
+});
+export type ContextUsage = z.infer<typeof contextUsageSchema>;
+
+/** Manually compact a live session's context (mirrors Pi's `/compact`). */
+export const compactSessionInputSchema = z.object({
+  sessionId: z.string().min(1),
+  /** Optional steering instructions for the compaction summary. */
+  instructions: z.string().optional(),
+});
+export type CompactSessionInput = z.infer<typeof compactSessionInputSchema>;
+
 export type AppContentBlock =
   | { type: "text"; text: string }
   | { type: "thinking"; thinking: string; redacted?: boolean }

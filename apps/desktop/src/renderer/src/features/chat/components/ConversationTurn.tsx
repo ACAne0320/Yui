@@ -67,11 +67,11 @@ export const ConversationTurn = memo(function ConversationTurn({
   // while the text is still streaming, so requiring `stopReason === undefined`
   // here would silence the typing animation for the whole reply.
   const streamingReply = reply !== undefined && busy && reply.id === messages.at(-1)?.id;
-  // The disclosure still folds once the reply settles (Codex-style): thinking
-  // stays expanded while working, collapses when the answer arrives.
+  // The disclosure still folds once the reply settles: thinking stays expanded
+  // while working, collapses when the answer arrives.
   const settled = reply !== undefined && reply.stopReason !== undefined;
   // Fold runs of consecutive tool calls into single collapsible rows so a busy
-  // loop reads as quiet steps instead of a wall of cards (Codex-style).
+  // loop reads as quiet steps instead of a wall of cards.
   const segments = groupToolSegments(buildTurnSegments(messages, liveTools, busy, reply?.id));
   const durationMs = runDurationMs(user, reply, reply ? messageStats[reply.id]?.runMs : undefined);
 

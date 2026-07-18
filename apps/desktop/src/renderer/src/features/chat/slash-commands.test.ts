@@ -31,8 +31,13 @@ describe("slashQuery", () => {
 describe("buildSlashCommands", () => {
   it("lists built-in app commands before extension commands", () => {
     const commands = buildSlashCommands(extensionCommands, t);
-    expect(commands.map((command) => command.token)).toEqual(["new", "reload", "deploy"]);
-    expect(commands.map((command) => command.kind)).toEqual(["app", "app", "extension"]);
+    expect(commands.map((command) => command.token)).toEqual([
+      "new",
+      "reload",
+      "compact",
+      "deploy",
+    ]);
+    expect(commands.map((command) => command.kind)).toEqual(["app", "app", "app", "extension"]);
   });
 
   it("keys an extension command by its source path and name", () => {

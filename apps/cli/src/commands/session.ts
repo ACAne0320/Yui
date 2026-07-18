@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { AppRuntimeError, type AppRuntime } from "@yui/contracts";
 import { printJson, printSessionInfo, printSessions } from "../output/format.ts";
-import { renderHistory } from "../output/render.ts";
+import { renderEvent, renderHistory } from "../output/render.ts";
 import { reportError, withRuntime } from "../runtime.ts";
 
 export interface SessionListOptions {
@@ -43,6 +43,38 @@ export async function sessionShow(
       } else {
         printSessionInfo(info);
         renderHistory(history, (chunk) => process.stdout.write(chunk));
+      }
+      return 0;
+    });
+  } catch (error) {
+    return reportError(error);
+  }
+}
+
+/**
+ * Manually compact a persisted session's context (mirrors Pi's `/compact`).
+ * Opens the session live, subscribes so compaction progress renders, runs the
+ * compaction, and closes again.
+ */
+export async function sessionCompact(
+  ref: string,
+  opts: { instructions?: string },
+): Promise<number> {
+  try {
+    return await withRuntime({}, async (runtime) => {
+      const sessionPath = await resolveSessionRef(runtime, ref);
+      const opened = await runtime.agents.openSession({ cwd: process.cwd(), sessionPath });
+      const unsubscribe = runtime.agents.subscribe(opened.sessionId, (event) =>
+        renderEvent(event, (chunk) => process.stdout.write(chunk)),
+      );
+      try {
+        await runtime.agents.compact({
+          sessionId: opened.sessionId,
+          instructions: opts.instructions,
+        });
+      } finally {
+        unsubscribe();
+        await runtime.agents.closeSession(opened.sessionId);
       }
       return 0;
     });

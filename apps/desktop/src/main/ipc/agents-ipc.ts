@@ -1,5 +1,6 @@
 import {
   type AppRuntime,
+  compactSessionInputSchema,
   generateTitleInputSchema,
   openSessionInputSchema,
   promptInputSchema,
@@ -87,5 +88,15 @@ export function registerAgentsIpc(
     desktopIpcChannels.agents.reloadSession,
     sessionIdInputSchema,
     (_event, input) => runtime.agents.reloadSession(input.sessionId),
+  );
+  registrar.handleInput(
+    desktopIpcChannels.agents.getContextUsage,
+    sessionIdInputSchema,
+    (_event, input) => runtime.agents.getContextUsage(input.sessionId),
+  );
+  registrar.handleInput(
+    desktopIpcChannels.agents.compact,
+    compactSessionInputSchema,
+    (_event, input) => runtime.agents.compact(input),
   );
 }

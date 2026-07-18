@@ -99,6 +99,8 @@ export function createYuiApi(
       getExtensionUiState: (input) => invoke(desktopIpcChannels.agents.getExtensionUiState, input),
       getExtensions: (input) => invoke(desktopIpcChannels.agents.getExtensions, input),
       reloadSession: (input) => invoke(desktopIpcChannels.agents.reloadSession, input),
+      getContextUsage: (input) => invoke(desktopIpcChannels.agents.getContextUsage, input),
+      compact: (input) => invoke(desktopIpcChannels.agents.compact, input),
     },
   };
 }

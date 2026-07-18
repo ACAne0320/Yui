@@ -10,6 +10,8 @@ import {
   type AgentService,
   type AppAgentEvent,
   AppRuntimeError,
+  type CompactSessionInput,
+  type ContextUsage,
   type ExtensionUiSnapshot,
   type OpenSessionInput,
   type OpenSessionResult,
@@ -392,6 +394,47 @@ export class PiAgentService implements AgentService {
       await session.reload();
     } catch (error) {
       throw new AppRuntimeError("internal", `Failed to reload session: ${describe(error)}`, error);
+    }
+  }
+
+  async getContextUsage(sessionId: string): Promise<ContextUsage | undefined> {
+    return this.pool.getSession(sessionId).getContextUsage();
+  }
+
+  async compact(input: CompactSessionInput): Promise<void> {
+    const session = this.pool.getSession(input.sessionId);
+    // Compacting mid-turn races the in-flight run; Pi's own flows (threshold /
+    // overflow) only trigger between turns.
+    if (session.isStreaming) {
+      throw new AppRuntimeError("session_busy", "Session is streaming; cannot compact now.");
+    }
+    if (session.isCompacting) {
+      throw new AppRuntimeError("session_busy", "Compaction is already in progress.");
+    }
+    try {
+      await session.compact(input.instructions);
+    } catch (error) {
+      throw new AppRuntimeError("internal", `Failed to compact session: ${describe(error)}`, error);
+    }
+    // Pi persists the compaction summary entry but emits no message event for
+    // it, so the live thread would only show it after a reload. Publish it
+    // ourselves: the conversation keeps a visible record of the compaction
+    // (rendered as the same "context compacted" card history shows).
+    const entry = session.sessionManager
+      .getBranch()
+      .findLast((candidate) => candidate.type === "compaction");
+    if (entry?.type === "compaction") {
+      this.pool.publish(input.sessionId, {
+        type: "message_end",
+        sessionId: input.sessionId,
+        message: {
+          id: `compaction_${entry.id}`,
+          role: "compactionSummary",
+          content: [{ type: "text", text: entry.summary }],
+          tokensBefore: entry.tokensBefore,
+          timestamp: Date.now(),
+        },
+      });
     }
   }
 

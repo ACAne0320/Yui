@@ -11,6 +11,34 @@ section newer than the running version, so keep entries user-facing.
 
 ## [Unreleased]
 
+## [0.0.8] - 2026-07-18
+
+### Added
+- A "max" thinking level is available for models that support it (Claude Fable
+  5, GPT-5.6, Kimi K3, and more from the refreshed model catalog).
+  ([`79fc429`](https://github.com/ACAne0320/Yui/commit/79fc429))
+- Successful context compactions now report how much context was freed, both
+  in the desktop toast and the CLI status line.
+  ([`f61414d`](https://github.com/ACAne0320/Yui/commit/f61414d))
+
+### Changed
+- Upgraded the bundled Pi agent runtime from 0.78.0 to 0.80.10, bringing the
+  current model catalog, more robust streaming and retry handling, and a
+  reworked credential layer (existing API keys and OAuth logins in
+  `auth.json` keep working unchanged).
+  ([`79fc429`](https://github.com/ACAne0320/Yui/commit/79fc429))
+
+### Fixed
+- Extension slash commands that wait for an idle session or reload resources
+  now behave correctly, and session-replacing actions (new session, fork,
+  tree navigation, session switch) report cancellation honestly instead of
+  pretending to succeed.
+  ([`f61414d`](https://github.com/ACAne0320/Yui/commit/f61414d))
+- Long-running sessions no longer risk a stuck busy indicator: the run-settled
+  signal from the agent runtime now clears leftover "retrying"/"compacting"
+  states.
+  ([`f61414d`](https://github.com/ACAne0320/Yui/commit/f61414d))
+
 ## [0.0.7] - 2026-06-24
 
 ### Added

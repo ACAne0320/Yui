@@ -39,6 +39,19 @@ export function renderEvent(event: AppAgentEvent, write: (chunk: string) => void
       write(`${DIM}↻ retry ${event.attempt}/${event.maxAttempts} in ${event.delayMs}ms${RESET}\n`);
       break;
 
+    case "compaction_start":
+      write(`${DIM}◆ compacting context (${event.reason})…${RESET}\n`);
+      break;
+
+    case "compaction_end":
+      if (event.errorMessage) {
+        write(`${RED}✗ compaction failed: ${event.errorMessage}${RESET}\n`);
+      } else if (!event.aborted && event.estimatedTokensAfter !== undefined) {
+        const before = event.tokensBefore !== undefined ? `${event.tokensBefore} → ` : "";
+        write(`${DIM}◆ compacted: ${before}~${event.estimatedTokensAfter} tokens${RESET}\n`);
+      }
+      break;
+
     case "error":
       write(`\n${RED}! ${event.message}${RESET}\n`);
       break;

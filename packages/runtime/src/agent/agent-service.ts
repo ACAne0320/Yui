@@ -155,11 +155,12 @@ export class PiAgentService implements AgentService {
     // Bind extensions as a canonical non-TUI host: dialogs go through the
     // bridge, `hasUI` flips to true, and session_start fires here. `mode:
     // "rpc"` matches Yui's RPC-style hosting (dialog-capable, no terminal
-    // UI). No commandContextActions: extension slash commands still run via
-    // prompt("/name") — their handlers get a working ui/exec/modelRegistry
-    // context — but Pi's session-control actions (newSession/fork/
-    // navigateTree/switchSession/reload) fall back to benign no-ops until we
-    // map them onto Yui's own session model.
+    // UI). commandContextActions maps Pi's session-control surface onto what
+    // Yui can honestly do: waitForIdle and reload are real; session
+    // replacement (newSession/fork/navigateTree/switchSession) reports
+    // `cancelled` because Yui owns session navigation in the renderer — the
+    // default no-op handlers would pretend success. Extension slash commands
+    // still run via prompt("/name").
     //
     // Do NOT await this. bindExtensions applies the tool/hook/UI bindings
     // synchronously (before its first await), so gating and the bridge are live
@@ -174,6 +175,18 @@ export class PiAgentService implements AgentService {
       .bindExtensions({
         uiContext: bridge,
         mode: "rpc",
+        commandContextActions: {
+          waitForIdle: () => session.waitForIdle(),
+          reload: async () => {
+            // Same guard as reloadSession: reloading mid-turn races the
+            // in-flight run.
+            if (!session.isStreaming) await session.reload();
+          },
+          newSession: async () => ({ cancelled: true }),
+          fork: async () => ({ cancelled: true }),
+          navigateTree: async () => ({ cancelled: true }),
+          switchSession: async () => ({ cancelled: true }),
+        },
         onError: (error) => {
           this.pool.publish(sessionId, {
             type: "error",

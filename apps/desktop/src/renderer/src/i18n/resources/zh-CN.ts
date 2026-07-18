@@ -181,6 +181,7 @@ export const zhCN = {
       authorizeModel: "请先在提供商设置中授权一个模型。",
       runFailed: "请求失败，请检查提供商设置或 API key。",
       reloaded: "已重新加载扩展、技能、提示词与设置。",
+      compacted: "上下文已压缩：{{before}} → 约 {{after}} tokens",
     },
     slash: {
       label: "命令",

@@ -202,4 +202,66 @@ describe("AgentEventMapper", () => {
     expect(out).toEqual([]);
     expect(onUnmapped).toHaveBeenCalledWith("some_future_event", expect.anything());
   });
+
+  it("maps agent_settled as the authoritative idle signal", () => {
+    const out = makeMapper().map(ev({ type: "agent_settled" }));
+    expect(out).toEqual([{ type: "agent_settled", sessionId }]);
+  });
+
+  it("passes compaction token estimates through compaction_end", () => {
+    const out = makeMapper().map(
+      ev({
+        type: "compaction_end",
+        reason: "threshold",
+        aborted: false,
+        willRetry: false,
+        result: {
+          summary: "…",
+          firstKeptEntryId: "e1",
+          tokensBefore: 128000,
+          estimatedTokensAfter: 41000,
+        },
+      }),
+    );
+
+    expect(out).toEqual([
+      {
+        type: "compaction_end",
+        sessionId,
+        reason: "threshold",
+        aborted: false,
+        willRetry: false,
+        errorMessage: undefined,
+        tokensBefore: 128000,
+        estimatedTokensAfter: 41000,
+      },
+    ]);
+  });
+
+  it("leaves compaction token fields absent when the run produced no result", () => {
+    const out = makeMapper().map(
+      ev({ type: "compaction_end", reason: "manual", aborted: true, willRetry: false }),
+    );
+
+    expect(out).toEqual([
+      {
+        type: "compaction_end",
+        sessionId,
+        reason: "manual",
+        aborted: true,
+        willRetry: false,
+        errorMessage: undefined,
+        tokensBefore: undefined,
+        estimatedTokensAfter: undefined,
+      },
+    ]);
+  });
+
+  it("drops display-only entry_appended events", () => {
+    const onUnmapped = vi.fn();
+    const out = makeMapper(onUnmapped).map(ev({ type: "entry_appended", entry: {} }));
+
+    expect(out).toEqual([]);
+    expect(onUnmapped).not.toHaveBeenCalled();
+  });
 });

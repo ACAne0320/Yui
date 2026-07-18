@@ -163,6 +163,8 @@ export class AgentEventMapper {
             aborted: event.aborted,
             willRetry: event.willRetry,
             errorMessage: event.errorMessage,
+            tokensBefore: event.result?.tokensBefore,
+            estimatedTokensAfter: event.result?.estimatedTokensAfter,
           },
         ];
       case "session_info_changed":
@@ -191,11 +193,14 @@ export class AgentEventMapper {
           },
         ];
 
-      // New in Pi 0.80, intentionally not surfaced in Yui contracts yet:
-      // `agent_settled` fires after agent_end once retries/compaction settle,
-      // and `entry_appended` covers display-only session entries. Dropping
-      // them preserves the pre-upgrade behavior.
+      // `agent_settled` (new in Pi 0.80) fires once the run is fully settled —
+      // after the final agent_end, when retries and compaction follow-up have
+      // completed. Surface it as the authoritative idle signal.
       case "agent_settled":
+        return [{ type: "agent_settled", sessionId }];
+
+      // `entry_appended` (new in Pi 0.80) covers display-only session entries,
+      // which Yui does not render; dropping it preserves prior behavior.
       case "entry_appended":
         return [];
 

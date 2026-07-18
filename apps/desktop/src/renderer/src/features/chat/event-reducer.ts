@@ -1,6 +1,12 @@
 import type { AppAgentEvent, ExtensionUiSnapshot } from "@yui/contracts";
+import i18n from "@renderer/i18n";
 import { upsertMessage } from "./lib";
 import type { ChatRealtimeState } from "./types";
+
+/** Compact token counts for toast copy: 128540 -> "129k", 860 -> "860". */
+function formatTokenCount(tokens: number): string {
+  return tokens >= 1000 ? `${Math.round(tokens / 1000)}k` : String(tokens);
+}
 
 // One-shot side effects the store cannot apply itself: catalog refreshes,
 // user-facing notices (which live in the ui store, not in chat state, so a
@@ -104,6 +110,16 @@ export function reduceAgentEvent(
           : [{ type: "refreshSessions" }],
       };
     }
+    case "agent_settled":
+      // The run is fully settled (final agent_end plus any retry/compaction
+      // follow-up). agent_end already settles the busy state on the happy
+      // path; this is the authoritative safety net for every other path
+      // (abort, retry exhaustion) — it never carries payload, so there is
+      // nothing to render beyond clearing indicators.
+      return {
+        state: { ...state, busy: false, liveTools: [], activity: null },
+        effects: [],
+      };
     case "message_start":
     case "message_update":
     case "message_end": {
@@ -191,11 +207,29 @@ export function reduceAgentEvent(
         state: { ...state, activity: { type: "compacting" } },
         effects: [],
       };
-    case "compaction_end":
-      return {
-        state: { ...state, activity: null },
-        effects: event.errorMessage ? [{ type: "notice", message: event.errorMessage }] : [],
-      };
+    case "compaction_end": {
+      if (event.errorMessage) {
+        return {
+          state: { ...state, activity: null },
+          effects: [{ type: "notice", message: event.errorMessage }],
+        };
+      }
+      // A successful compaction is silent unless Pi reported the size win —
+      // then surface it once so the context shrink is visible.
+      const effects: ChatEventEffect[] =
+        event.tokensBefore !== undefined && event.estimatedTokensAfter !== undefined
+          ? [
+              {
+                type: "notice",
+                message: i18n.t("chat.notices.compacted", {
+                  before: formatTokenCount(event.tokensBefore),
+                  after: formatTokenCount(event.estimatedTokensAfter),
+                }),
+              },
+            ]
+          : [];
+      return { state: { ...state, activity: null }, effects };
+    }
     case "auto_retry_start":
       return {
         state: {

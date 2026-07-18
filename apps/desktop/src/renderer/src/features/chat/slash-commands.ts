@@ -22,7 +22,8 @@ export interface SlashCommand {
  * active session's extension commands. Extension commands dispatch through
  * `conversation.runSlashCommand` (Pi routes "/name" to the extension's handler);
  * commands that only touch UI/tools/exec run fully, while Pi's session-control
- * actions (fork/newSession/…) are currently benign no-ops.
+ * actions (fork/newSession/…) resolve to `{ cancelled: true }` — Yui owns
+ * session navigation in the renderer.
  *
  * `t` is threaded in (rather than importing the i18n singleton) so titles
  * re-localize when the caller re-renders on a language change.

@@ -189,6 +189,7 @@ export const enUS = {
       authorizeModel: "Authorize a model in provider settings first.",
       runFailed: "The request failed. Check the provider settings or API key.",
       reloaded: "Reloaded extensions, skills, prompts, and settings.",
+      compacted: "Context compacted: {{before}} → ~{{after}} tokens",
     },
     slash: {
       label: "Commands",

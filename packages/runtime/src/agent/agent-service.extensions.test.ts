@@ -117,6 +117,41 @@ describe("PiAgentService extension binding", () => {
     expect(agentService.getExtensionUiState(sessionId).pendingRequests).toHaveLength(0);
   });
 
+  it("keeps extension UI routing isolated across two concurrent live sessions", async () => {
+    const { config, service: agentService } = await setup();
+    // Two live sessions in the same cwd. Pi 0.78 hijacked extension routing
+    // when sessions shared a services object; Yui builds fresh services per
+    // session (and 0.80 made the ExtensionRunner per-session anyway), so each
+    // session must get its own dialogs and snapshot.
+    const first = await agentService.openSession({ cwd: config.cwd });
+    const second = await agentService.openSession({ cwd: config.cwd });
+
+    // Each session pends its own confirm dialog with a distinct request id.
+    await vi.waitFor(() => {
+      expect(agentService.getExtensionUiState(first.sessionId).pendingRequests).toHaveLength(1);
+      expect(agentService.getExtensionUiState(second.sessionId).pendingRequests).toHaveLength(1);
+    });
+    const firstPending = agentService.getExtensionUiState(first.sessionId).pendingRequests[0];
+    const secondPending = agentService.getExtensionUiState(second.sessionId).pendingRequests[0];
+    expect(firstPending.requestId).not.toBe(secondPending.requestId);
+
+    // Answering the first session's dialog leaves the second one pending.
+    await agentService.respondToExtensionUi({
+      sessionId: first.sessionId,
+      requestId: firstPending.requestId,
+      response: { kind: "confirmed", confirmed: true },
+    });
+    await vi.waitFor(() =>
+      expect(agentService.getExtensionUiState(first.sessionId).pendingRequests).toHaveLength(0),
+    );
+    expect(agentService.getExtensionUiState(second.sessionId).pendingRequests).toHaveLength(1);
+
+    // Both sessions expose the fixture's status chip independently.
+    expect(agentService.getExtensionUiState(second.sessionId).statuses).toEqual([
+      { key: "fixture", text: "ready" },
+    ]);
+  });
+
   it("rejects the pending dialog with the default when the session closes", async () => {
     const { config, service: agentService } = await setup();
     const opened = await agentService.openSession({ cwd: config.cwd });

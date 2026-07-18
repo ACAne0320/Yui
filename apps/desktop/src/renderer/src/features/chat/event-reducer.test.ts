@@ -164,6 +164,64 @@ describe("reduceAgentEvent", () => {
     expect(errored.effects).toContainEqual({ type: "notice", message: "boom" });
   });
 
+  it("clears busy and indicators on agent_settled as a safety net", () => {
+    const result = reduceAgentEvent(
+      {
+        ...base,
+        busy: true,
+        activity: { type: "compacting" },
+        liveTools: [{ toolCallId: "t", name: "x", args: {}, running: true }],
+      },
+      { type: "agent_settled", sessionId: "active" },
+    );
+    expect(result.state.busy).toBe(false);
+    expect(result.state.activity).toBeNull();
+    expect(result.state.liveTools).toEqual([]);
+    expect(result.effects).toEqual([]);
+  });
+
+  it("surfaces the context shrink on a successful compaction", () => {
+    const result = reduceAgentEvent(
+      { ...base, activity: { type: "compacting" } },
+      {
+        type: "compaction_end",
+        sessionId: "active",
+        reason: "threshold",
+        aborted: false,
+        willRetry: false,
+        tokensBefore: 128000,
+        estimatedTokensAfter: 41000,
+      },
+    );
+    expect(result.state.activity).toBeNull();
+    expect(result.effects).toEqual([
+      { type: "notice", message: "Context compacted: 128k → ~41k tokens" },
+    ]);
+  });
+
+  it("stays silent after compactions without a result and surfaces failures", () => {
+    const quiet = reduceAgentEvent(base, {
+      type: "compaction_end",
+      sessionId: "active",
+      reason: "manual",
+      aborted: false,
+      willRetry: false,
+    });
+    expect(quiet.effects).toEqual([]);
+
+    const failed = reduceAgentEvent(base, {
+      type: "compaction_end",
+      sessionId: "active",
+      reason: "overflow",
+      aborted: false,
+      willRetry: true,
+      errorMessage: "summary request failed",
+      tokensBefore: 128000,
+      estimatedTokensAfter: 41000,
+    });
+    expect(failed.effects).toEqual([{ type: "notice", message: "summary request failed" }]);
+  });
+
   it("emits notices as one-shot effects, not state", () => {
     const failed = reduceAgentEvent(base, {
       type: "auto_retry_end",

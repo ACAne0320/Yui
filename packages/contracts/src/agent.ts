@@ -269,6 +269,12 @@ export type AppAgentEvent =
   | { type: "turn_start"; sessionId: string }
   | { type: "turn_end"; sessionId: string; message: AppMessage; toolResults: AppMessage[] }
   | { type: "agent_end"; sessionId: string; willRetry: boolean }
+  /**
+   * The run is fully settled: the final agent_end has fired and any pending
+   * retries/compaction follow-up have completed. Fires after agent_end; use it
+   * as the authoritative "no more work will happen on this session" signal.
+   */
+  | { type: "agent_settled"; sessionId: string }
   // Message lifecycle (full Yui-owned snapshots)
   | { type: "message_start"; sessionId: string; message: AppMessage }
   | { type: "message_update"; sessionId: string; message: AppMessage; stream: AppStreamEvent }
@@ -306,6 +312,10 @@ export type AppAgentEvent =
       aborted: boolean;
       willRetry: boolean;
       errorMessage?: string;
+      /** Context tokens before compaction, when Pi reports a result. */
+      tokensBefore?: number;
+      /** Estimated context tokens after compaction, when Pi reports a result. */
+      estimatedTokensAfter?: number;
     }
   | { type: "session_info_changed"; sessionId: string; name?: string }
   | { type: "thinking_level_changed"; sessionId: string; level: ThinkingLevel }

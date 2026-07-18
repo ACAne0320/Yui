@@ -383,6 +383,17 @@ export function createSubagentTool(options: SubagentToolOptions) {
           try {
             await child.bindExtensions({
               uiContext: bridge,
+              mode: "rpc",
+              commandContextActions: {
+                waitForIdle: () => child.waitForIdle(),
+                // Children are ephemeral in-memory sessions; replacing or
+                // reloading them from an extension command is not supported.
+                reload: async () => {},
+                newSession: async () => ({ cancelled: true }),
+                fork: async () => ({ cancelled: true }),
+                navigateTree: async () => ({ cancelled: true }),
+                switchSession: async () => ({ cancelled: true }),
+              },
               onError: options.host.onExtensionError,
             });
             await child.prompt(state.task);

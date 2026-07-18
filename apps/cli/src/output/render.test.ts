@@ -62,9 +62,37 @@ describe("renderEvent", () => {
     expect(failed).toContain("failed");
   });
 
+  it("renders compaction progress and the size estimate", () => {
+    expect(render({ type: "compaction_start", sessionId: "s1", reason: "threshold" })).toContain(
+      "compacting context (threshold)",
+    );
+
+    const done = render({
+      type: "compaction_end",
+      sessionId: "s1",
+      reason: "threshold",
+      aborted: false,
+      willRetry: false,
+      tokensBefore: 128000,
+      estimatedTokensAfter: 41000,
+    });
+    expect(done).toContain("128000 → ~41000 tokens");
+
+    const failed = render({
+      type: "compaction_end",
+      sessionId: "s1",
+      reason: "overflow",
+      aborted: false,
+      willRetry: true,
+      errorMessage: "boom",
+    });
+    expect(failed).toContain("compaction failed: boom");
+  });
+
   it("ignores lifecycle events with no inline output", () => {
     expect(render({ type: "agent_start", sessionId: "s1" })).toBe("");
     expect(render({ type: "turn_start", sessionId: "s1" })).toBe("");
+    expect(render({ type: "agent_settled", sessionId: "s1" })).toBe("");
   });
 });
 
